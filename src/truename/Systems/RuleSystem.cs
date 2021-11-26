@@ -3,9 +3,10 @@ namespace truename.Systems;
 public class RuleSystem
 {
   private readonly Game game;
-  private HandSystem handSystem;
-  private LibrarySystem librarySystem;
-  private MulliganSystem mulliganSystem;
+  private readonly HandSystem handSystem;
+  private readonly LibrarySystem librarySystem;
+  private readonly MulliganSystem mulliganSystem;
+  private readonly TurnSystem turnSystem;
 
   (Zones, Guid?) handFor(Guid playerId) => (Zones.Hand, playerId);
 
@@ -15,20 +16,25 @@ public class RuleSystem
     handSystem = new HandSystem(game);
     librarySystem = new LibrarySystem(game);
     mulliganSystem = new MulliganSystem(game);
+    turnSystem = new TurnSystem(game);
   }
 
   public IEnumerable<GameEvent> PlayGame()
   {
     yield return DetermineTurnOrder();
-    var playerId = game.TurnOrder.First();
-    var playerName = game.GetPlayerName(playerId);
-    yield return new GameEvent($"{playerName} on the play");
+    yield return new GameEvent($"{game.ActivePlayer.Name} on the play");
 
     foreach (var @event in DrawOpeningHands())
       yield return @event;
 
-    // foreach (var @event in TakeTurns())
-    //   yield return @event;
+    foreach (var @event in TakeTurns())
+    {
+      // effect replacement?
+      if (@event.Type == "Untap")
+        yield return new GameEvent("Skipped Untap");
+      else
+        yield return @event;
+    }
   }
 
   GameEvent DetermineTurnOrder()
@@ -45,10 +51,10 @@ public class RuleSystem
     {
       Name = $"{player.Name} won the die roll",
       Description = "Go First?",
-      Options = new[]
+      Actions = new[]
       {
-        new GameAction("Play", () => { game.SetTurnOrder(turnOrder); }),
-        new GameAction("Draw", () => { game.SetTurnOrder(turnOrder.Reverse()); }),
+        new GameAction("Play", () => game.SetTurnOrder(turnOrder)),
+        new GameAction("Draw", () => game.SetTurnOrder(turnOrder.Reverse())),
       }
     };
   }
@@ -107,11 +113,9 @@ public class RuleSystem
   {
     do
     {
-      // if turn queue empty, queue up turn for active player
-      // otherwise, take the next (probably extra) turn in queue
-      //
-      // take turn off queue
+      var turn = turnSystem.TakeTurn();
+      foreach (var @event in turn)
+        yield return @event;
     } while (game.TurnOrder.Count > 1);
-    return Enumerable.Empty<GameEvent>();
   }
 }

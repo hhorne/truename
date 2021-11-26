@@ -15,11 +15,19 @@ var game = ruleSystem.PlayGame();
 
 foreach (var @event in game)
 {
-  if (@event.Options.None())
+  if (@event.Actions.Length <= 1)
   {
     Console.WriteLine(@event.Name);
     if (!string.IsNullOrEmpty(@event.Description))
       Console.WriteLine(@event.Description);
+
+    if (@event.Actions.Any())
+    {
+      @event
+        .Actions
+        .First()
+        .Action();
+    }
   }
   else
   {

@@ -10,7 +10,8 @@ public partial class Game : AggregateRoot
   public int Number { get; set; }
   public List<Guid> TurnOrder { get; set; } = new();
   public Dictionary<Guid, Player> Players { get; set; } = new();
-  public Guid? ActivePlayerId { get; set; } = null;
+  public Guid ActivePlayerId { get; set; }
+  public Player ActivePlayer => Players[ActivePlayerId];
   public Dictionary<(ZoneKeys, Guid?), IEnumerable<Card>> Zones { get; set; } = new();
 
   public Game() { }
@@ -76,5 +77,17 @@ public partial class Game : AggregateRoot
   public void Apply(UpdateZone @event)
   {
     Zones[@event.ZoneId] = @event.Cards;
+  }
+
+  public void UpdateActivePlayer(Guid playerId)
+  {
+    var @event = new UpdateActivePlayer(playerId);
+    Apply(@event);
+    AddUncommittedEvent(@event);
+  }
+
+  public void Apply(UpdateActivePlayer @event)
+  {
+    ActivePlayerId = @event.PlayerId;
   }
 }

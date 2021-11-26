@@ -11,7 +11,7 @@ public static class GameEventHelpers
       title = $"{title}\n[italic white]{@event.Description}[/]";
     return new SelectionPrompt<GameAction>()
       .Title(title)
-      .PageSize(@event.Options.Length + 1)
-      .AddChoices(@event.Options);
+      .PageSize(@event.Actions.Length + 1)
+      .AddChoices(@event.Actions);
   }
 }

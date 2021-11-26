@@ -11,7 +11,12 @@ public class TurnSystem
 
   public IEnumerable<GameEvent> TakeTurn()
   {
-    var activePlayerId = game.ActivePlayerId;
+    var playerId = game.ActivePlayerId;
+    var activePlayer = game.Players[playerId];
+    if (activePlayer is null)
+      throw new KeyNotFoundException();
+    var playerName = activePlayer.Name;
+
     // Beginning Phase
     // - Untap
     // --- The active player determines which permanents
@@ -21,10 +26,33 @@ public class TurnSystem
     // --- card effect prevents this.)
     //
     // Requires: Untap Effect, Replacement Effect
-    var untap = () => { };
+    yield return new GameEvent
+    {
+      PlayerId = playerId,
+      Name = $"{playerName}'s Untap Step",
+      Type = "Turn/Step/Untap",
+      Actions = new[]
+      {
+        new GameAction("Untap", () => {}),
+      },
+    };
 
     // - Upkeep
     // - Draw
-    return Enumerable.Empty<GameEvent>();
+    yield return new GameEvent
+    {
+      PlayerId = playerId,
+      Name = $"{playerName}'s Draw Step",
+      Type = "Turn/Step/Draw",
+      Actions = new[]
+      {
+        new GameAction("Draw", () => {}),
+      },
+    };
+
+    var turnOrder = game.TurnOrder;
+    var activePlayerId = game.ActivePlayerId;
+    var nextActivePlayerId = turnOrder.After(activePlayerId);
+    game.UpdateActivePlayer(nextActivePlayerId);
   }
 }

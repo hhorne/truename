@@ -6,7 +6,8 @@ public class GameEvent
   public Guid? PlayerId { get; set; }
   public string Name { get; set; } = string.Empty;
   public string Description { get; set; } = string.Empty;
-  public GameAction[] Options { get; set; } = { };
+  public string Type { get; set; } = string.Empty;
+  public GameAction[] Actions { get; set; } = { };
   public override string ToString() => Name;
 
   public GameEvent() { }
@@ -14,5 +15,11 @@ public class GameEvent
   public GameEvent(string message)
   {
     Name = message;
+  }
+
+  public GameEvent(string message, string description)
+  {
+    Name = message;
+    Description = description;
   }
 }
