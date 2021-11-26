@@ -2,18 +2,18 @@ namespace truename
 {
   public static class TestData
   {
-    public static string[] CreateCards(string name, int count) =>
+    public static Card[] CreateCards(string name, int count) =>
         Enumerable
             .Range(1, count)
-            .Select(n => $"{name}-{n}")
+            .Select(n => new Card(name))
             .ToArray();
 
-    public static string[] AndCards(this string[] cards, string name, int count) =>
+    public static Card[] AndCards(this Card[] cards, string name, int count) =>
         cards
         .Concat(TestData.CreateCards(name, count))
         .ToArray();
 
-    public static string[] GrixisDeck = CreateCards("thoughtseize", 4)
+    public static Card[] GrixisDeck = CreateCards("thoughtseize", 4)
         .AndCards("snapcaster-mage", 4)
         .AndCards("fatal-push", 4)
         .AndCards("lightning-bolt", 4)
@@ -28,7 +28,7 @@ namespace truename
         .AndCards("swamp", 2)
         .AndCards("mountain", 2);
 
-    public static string[] ReanimatorDeck = CreateCards("griselbrand", 4)
+    public static Card[] ReanimatorDeck = CreateCards("griselbrand", 4)
       .AndCards("chancellor-of-the-annex", 4)
       .AndCards("dark-ritual", 4)
       .AndCards("entomb", 4)

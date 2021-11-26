@@ -84,7 +84,7 @@ public class RuleSystem
   GameEvent DrawHand(Guid playerId)
   {
     const int DefaultHandSize = 7;
-    var cardsDrawn = new List<string>();
+    var cardsDrawn = new List<Card>();
     for (int i = 0; i < DefaultHandSize; i++)
     {
       var cards = librarySystem.TakeTop(playerId);
@@ -103,12 +103,15 @@ public class RuleSystem
     };
   }
 
-  // public IEnumerable<GameEvent> TakeTurns()
-  // {
-  //   // seed turn queue with first turn
-  //   do
-  //   {
-  //   } while (game.TurnOrder.Count > 1);
-  //   return Enumerable.Empty<GameEvent>();
-  // }
+  public IEnumerable<GameEvent> TakeTurns()
+  {
+    do
+    {
+      // if turn queue empty, queue up turn for active player
+      // otherwise, take the next (probably extra) turn in queue
+      //
+      // take turn off queue
+    } while (game.TurnOrder.Count > 1);
+    return Enumerable.Empty<GameEvent>();
+  }
 }

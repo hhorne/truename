@@ -76,7 +76,7 @@ public class MulliganSystem
           Description = $"{remaining} remaining",
           Options = game.Zones[handId]
             .Except(decisions[playerId].PutBack)
-            .Select(c => new GameAction(c, () => PutBack(playerId, c)))
+            .Select(c => new GameAction(c.ToString(), () => PutBack(playerId, c)))
             .ToArray()
         };
       }
@@ -99,6 +99,6 @@ public class MulliganSystem
     }
   }
 
-  void PutBack(Guid playerId, string card) =>
+  void PutBack(Guid playerId, Card card) =>
     decisions[playerId].PutBack.Add(card);
 }

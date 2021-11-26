@@ -4,5 +4,5 @@ public class MulliganDecision
 {
   public bool Keep { get; set; }
   public int Taken { get; set; }
-  public List<string> PutBack { get; set; } = new();
+  public List<Card> PutBack { get; set; } = new();
 }

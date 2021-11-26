@@ -23,7 +23,7 @@ public class LibrarySystem
     return new GameEvent($"{game.GetPlayerName(playerId)} [Shuffle]s their [Library]");
   }
 
-  public IEnumerable<string> TakeTop(Guid playerId, int count = 1)
+  public IEnumerable<Card> TakeTop(Guid playerId, int count = 1)
   {
     var libraryId = libraryFor(playerId);
     var library = game.Zones[libraryId];
@@ -32,7 +32,7 @@ public class LibrarySystem
     return toDraw;
   }
 
-  public GameEvent PutOnBottom(Guid playerId, IEnumerable<string> cards)
+  public GameEvent PutOnBottom(Guid playerId, IEnumerable<Card> cards)
   {
     var libraryId = libraryFor(playerId);
 
