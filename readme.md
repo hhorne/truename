@@ -1,6 +1,6 @@
 # truename
 
-replicating the mechanics and game play of magic
+replicating the mechanics and game play of 🧙‍♀️✨magic🧙‍♂️
 
 ## Plan
 
@@ -27,4 +27,4 @@ three phases to the implementation plan:
 While Blood Moon turns either Saga or Stage into a `Basic Mountain` the way layers and granted abilities work means they do not lose their notable abilities. Ideal for testing complex interactions in the layer system.
 
 # Turns
-* [Turns.md](truename.Tests\Turns\turn-notes.md)
+* [Turns.md](reference\turn-notes.md)
