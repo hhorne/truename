@@ -6,9 +6,9 @@ replicating the mechanics and game play of magic
 
 three phases to the implementation plan:
 
-- rules engine / unit tests
-- client that accepts game state represented by json and resolves any pending interactions
-- user oriented game client
+- 🔳 rules engine / unit tests (in progress)
+- 🔲 client that accepts game state represented by json and resolves any pending interactions
+- 🔲 user oriented game client
 
 ## Resources
 
