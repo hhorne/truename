@@ -45,16 +45,13 @@ public class GameSystemTests
       return false;
     };
 
-    var events = new[]
+    var skip = new GameEvent
     {
-      new GameEvent
-      {
-        Name = "Skip Draw",
-        Type = $"Skip/{drawEventId}"
-      }
+      Name = "Skip Draw",
+      Type = $"Skip/{drawEventId}"
     };
 
-    var skipDraw = new ReplacementEffect(isFirstDraw, events);
+    var skipDraw = new ReplacementEffect(isFirstDraw, skip);
     Assert.True(skipDraw.AppliesTo(game, @event));
   }
 

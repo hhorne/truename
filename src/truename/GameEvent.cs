@@ -8,7 +8,6 @@ public class GameEvent
   public string Description { get; set; } = string.Empty;
   public string Type { get; set; } = string.Empty;
   public GameAction[] Choices { get; set; } = { };
-  public IEnumerable<GameEvent> SubEvents = Enumerable.Empty<GameEvent>();
 
   public override string ToString() => Name;
 

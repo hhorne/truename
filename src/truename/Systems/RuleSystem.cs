@@ -23,7 +23,11 @@ public class RuleSystem
   public IEnumerable<GameEvent> PlayGame()
   {
     foreach (var @event in GameLoop())
+    {
       yield return LoggedEvent(@event);
+      if (@event.Choices.Length == 1)
+        @event.Choices.First().Action();
+    }
   }
 
   public GameEvent LoggedEvent(GameEvent @event) => game.Log(@event);
@@ -124,15 +128,7 @@ public class RuleSystem
           .OfType<ReplacementEffect>()
           .FirstOrDefault(x => x.AppliesTo(game, @event));
 
-        if (replacement is null)
-        {
-          yield return @event;
-        }
-        else
-        {
-          foreach (var effect in replacement.Events)
-            yield return effect;
-        }
+        yield return replacement?.Event ?? @event;
       }
     }
   }

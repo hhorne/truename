@@ -3,16 +3,16 @@ namespace truename.Effects;
 public class ReplacementEffect : ContinuousEffect
 {
   public GameCondition AppliesTo { get; private set; } = (game, @event) => false;
-  public IEnumerable<GameEvent> Events { get; private set; } = Enumerable.Empty<GameEvent>();
+  public GameEvent Event { get; private set; }
 
 
-  public ReplacementEffect(GameCondition applies, IEnumerable<GameEvent> events)
-    : this(applies, applies, events) { }
+  public ReplacementEffect(GameCondition applies, GameEvent @event)
+    : this(applies, applies, @event) { }
 
-  public ReplacementEffect(GameCondition applies, GameCondition expires, IEnumerable<GameEvent> events)
+  public ReplacementEffect(GameCondition applies, GameCondition expires, GameEvent @event)
     : base(expires)
   {
     this.AppliesTo = applies;
-    this.Events = events;
+    this.Event = @event;
   }
 }

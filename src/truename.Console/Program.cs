@@ -20,14 +20,6 @@ foreach (var @event in game)
     Console.WriteLine(@event.Name);
     if (!string.IsNullOrEmpty(@event.Description))
       Console.WriteLine(@event.Description);
-
-    if (@event.Choices.Any())
-    {
-      @event
-        .Choices
-        .First()
-        .Action();
-    }
   }
   else
   {

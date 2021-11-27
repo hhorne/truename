@@ -2,14 +2,11 @@ namespace truename.Effects;
 
 public class SkipDraw : ReplacementEffect
 {
-  static readonly IEnumerable<GameEvent> events = new[]
-    {
-      new GameEvent
-      {
-        Name = "Skip Draw",
-        Type = $"Skip/Draw"
-      }
-    };
+  static readonly GameEvent events = new GameEvent
+  {
+    Name = "Skip Draw",
+    Type = $"Skip/Draw"
+  };
 
   public SkipDraw(GameCondition applies)
     : base(applies, events) { }
