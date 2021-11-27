@@ -1,4 +1,5 @@
 using truename.Domain;
+using truename.Effects;
 using truename.Events;
 
 namespace truename;
@@ -12,8 +13,11 @@ public partial class Game : AggregateRoot
   public Dictionary<string, Player> Players { get; set; } = new();
   public string ActivePlayerId { get; set; } = string.Empty;
   public Player ActivePlayer => Players[ActivePlayerId];
+  public string PriorityHolderId { get; set; } = string.Empty;
   public Dictionary<(ZoneKeys, string), IEnumerable<Card>> Zones { get; set; } = new();
-  public List<GameEvent> EventLog { get; set; } = new List<GameEvent>();
+  public List<GameEvent> EventLog { get; set; } = new();
+  public Dictionary<string, int> Turns { get; set; } = new();
+  public List<ContinuousEffect> ContinuousEffects { get; set; } = new();
 
   public Game() { }
 
@@ -65,6 +69,7 @@ public partial class Game : AggregateRoot
   public void Apply(SetTurnOrder @event)
   {
     TurnOrder = @event.TurnOrder.ToList();
+    Turns = TurnOrder.ToDictionary(p => p, p => 1);
     ActivePlayerId = TurnOrder.First();
   }
 
@@ -90,6 +95,19 @@ public partial class Game : AggregateRoot
   public void Apply(UpdateActivePlayer @event)
   {
     ActivePlayerId = @event.PlayerId;
+    Turns[ActivePlayerId]++;
+  }
+
+  public void PassPriorityTo(string playerId)
+  {
+    var @event = new PassPriority(playerId);
+    Apply(@event);
+    AddUncommittedEvent(@event);
+  }
+
+  public void Apply(PassPriority @event)
+  {
+    PriorityHolderId = @event.PlayerId;
   }
 
   public GameEvent Log(GameEvent gameEvent)

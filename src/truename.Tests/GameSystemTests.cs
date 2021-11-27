@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
-using truename.Systems;
+using truename.Effects;
 
 namespace truename.Tests;
 
@@ -10,47 +11,78 @@ public class GameSystemTests
   [Fact]
   public void Test1()
   {
-    var game = new Game(new[]{
-      new Player(
-        "tron_travolta",
-        TestData.GrixisDeck
-      ),
-      new Player(
-        "typedef",
-        TestData.ReanimatorDeck
-      )
-    });
+    var players = new[] {
+      new Player("tron_travolta", TestData.GrixisDeck),
+      new Player("typedef", TestData.ReanimatorDeck)
+    };
 
-    game.SetTurnOrder(new[]
-    {
-      "tron_travolta",
-      "typedef"
-    });
+    var game = new Game(players);
+    game.SetTurnOrder(players.Select(p => p.Id));
 
+    var drawEventId = "Turn/Step/Draw";
     var @event = new GameEvent
     {
       PlayerId = game.ActivePlayerId,
-      Name = $"{game.ActivePlayer.Name}'s Draw Step",
-      Type = "Turn/Step/Draw",
+      Name = "Draw Step",
+      Description = $"{game.ActivePlayer.Name}'s Draw Step",
+      Type = drawEventId,
       Actions = new[]
       {
         new GameAction("Draw", () => {}),
       },
     };
+
+    GameCondition isFirstDraw = (game, @event) =>
+    {
+      if (@event.Type == drawEventId)
+      {
+        var firstPlayer = game.TurnOrder.First();
+        var playerId = @event.PlayerId;
+        var turnNumber = game.Turns[playerId];
+        return turnNumber == 1 && firstPlayer == playerId;
+      }
+
+      return false;
+    };
+
+    var events = new[]
+    {
+      new GameEvent
+      {
+        Name = "Skip Draw",
+        Type = $"Skip/{drawEventId}"
+      }
+    };
+
+    var skipDraw = new ReplacementEffect(isFirstDraw, events);
+    Assert.True(skipDraw.AppliesTo(game, @event));
   }
-}
 
-public class ContinuousEffect
-{
-  Predicate<Game> condition = g => false;
-  Predicate<Game> expired = g => false;
-  public Action Effect { get; set; } = () => { };
+  [Fact]
+  public void Test2()
+  {
+    var players = new[] {
+      new Player("tron_travolta", TestData.GrixisDeck),
+      new Player("typedef", TestData.ReanimatorDeck)
+    };
 
-  public bool Applies(Game g) => condition(g);
-  public bool Expired(Game g) => expired(g);
-}
+    var game = new Game(players);
+    game.SetTurnOrder(players.Select(p => p.Id));
 
-public class ReplacementEffect : ContinuousEffect
-{
+    var skipDraw = new SkipDraw((game, @event) =>
+    {
+      if (@event.Type == "Turn/Step/Draw")
+      {
+        var firstPlayer = game.TurnOrder.First();
+        var playerId = @event.PlayerId;
+        var turnNumber = game.Turns[playerId];
+        return turnNumber == 1 && firstPlayer == playerId;
+      }
 
+      return false;
+    });
+
+    game.ContinuousEffects.Add(skipDraw);
+    Assert.True(game.ContinuousEffects.OfType<ReplacementEffect>().Any());
+  }
 }

@@ -12,9 +12,7 @@ public class TurnSystem
   public IEnumerable<GameEvent> TakeTurn()
   {
     var playerId = game.ActivePlayerId;
-    var activePlayer = game.Players[playerId];
-    if (activePlayer is null)
-      throw new KeyNotFoundException();
+    var activePlayer = game.ActivePlayer;
     var playerName = activePlayer.Name;
 
     // Beginning Phase
@@ -38,6 +36,20 @@ public class TurnSystem
     };
 
     // - Upkeep
+    yield return new GameEvent
+    {
+      PlayerId = playerId,
+      Name = $"{playerName}'s Upkeep",
+      Type = "Turn/Step/Upkeep",
+      Actions = new[]
+      {
+        new GameAction("Upkeep", () =>
+        {
+          game.PassPriorityTo(playerId);
+        }),
+      },
+    };
+
     // - Draw
     yield return new GameEvent
     {
@@ -46,7 +58,14 @@ public class TurnSystem
       Type = "Turn/Step/Draw",
       Actions = new[]
       {
-        new GameAction("Draw", () => {}),
+        new GameAction("Draw", () =>
+        {
+          var library = game.Zones[(Zones.Library, playerId)];
+          var hand =   game.Zones[(Zones.Hand, playerId)];
+          var cards = library.TakeLast(1);
+          game.UpdateZone((Zones.Library, playerId), library.Except(cards));
+          game.UpdateZone((Zones.Hand, playerId), hand.Concat(cards));
+        }),
       },
     };
 

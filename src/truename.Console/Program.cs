@@ -15,7 +15,7 @@ var game = ruleSystem.PlayGame();
 
 foreach (var @event in game)
 {
-  if (@event.Actions.Length <= 1)
+  if (@event.Actions.Count() <= 1)
   {
     Console.WriteLine(@event.Name);
     if (!string.IsNullOrEmpty(@event.Description))

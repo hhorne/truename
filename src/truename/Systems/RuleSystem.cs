@@ -1,3 +1,5 @@
+using truename.Effects;
+
 namespace truename.Systems;
 
 public class RuleSystem
@@ -19,6 +21,14 @@ public class RuleSystem
 
   public IEnumerable<GameEvent> PlayGame()
   {
+    foreach (var @event in GameLoop())
+    {
+      yield return @event;
+    }
+  }
+
+  public IEnumerable<GameEvent> GameLoop()
+  {
     foreach (var @event in DetermineTurnOrder())
       yield return LoggedEvent(@event);
 
@@ -27,6 +37,7 @@ public class RuleSystem
 
     foreach (var @event in TakeTurns())
     {
+      // game.ContinuousEffects.OfType<ReplacementEffect>()
       // effect replacement?
       if (@event.Type == "Untap")
         yield return LoggedEvent(new GameEvent("Skipped Untap"));
@@ -107,11 +118,40 @@ public class RuleSystem
 
   public IEnumerable<GameEvent> TakeTurns()
   {
-    while (game.TurnOrder.Count > 1)
+    // this isn't event-sourced, maybe it doesn't need to be?
+    game.ContinuousEffects.Add(new SkipDraw((game, @event) =>
+    {
+      if (@event.Type == "Turn/Step/Draw")
+      {
+        var firstPlayer = game.TurnOrder.First();
+        var playerId = @event.PlayerId;
+        var turnNumber = game.Turns[playerId];
+        return turnNumber == 1 && firstPlayer == playerId;
+      }
+
+      return false;
+    }));
+
+    while (game.TurnOrder.Count > 1 && game.Turns[game.ActivePlayerId] < 4)
     {
       var turn = turnSystem.TakeTurn();
       foreach (var @event in turn)
-        yield return @event;
+      {
+        var replacement = game
+          .ContinuousEffects
+          .OfType<ReplacementEffect>()
+          .FirstOrDefault(x => x.AppliesTo(game, @event));
+
+        if (replacement is null)
+        {
+          yield return @event;
+        }
+        else
+        {
+          foreach (var effect in replacement.Events)
+            yield return effect;
+        }
+      }
     }
   }
 }
