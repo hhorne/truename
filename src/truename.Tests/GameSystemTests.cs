@@ -26,7 +26,7 @@ public class GameSystemTests
       Name = "Draw Step",
       Description = $"{game.ActivePlayer.Name}'s Draw Step",
       Type = drawEventId,
-      Actions = new[]
+      Choices = new[]
       {
         new GameAction("Draw", () => {}),
       },

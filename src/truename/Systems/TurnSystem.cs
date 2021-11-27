@@ -29,7 +29,7 @@ public class TurnSystem
       PlayerId = playerId,
       Name = $"{playerName}'s Untap Step",
       Type = "Turn/Step/Untap",
-      Actions = new[]
+      Choices = new[]
       {
         new GameAction("Untap", () => {}),
       },
@@ -41,11 +41,11 @@ public class TurnSystem
       PlayerId = playerId,
       Name = $"{playerName}'s Upkeep",
       Type = "Turn/Step/Upkeep",
-      Actions = new[]
+      Choices = new[]
       {
         new GameAction("Upkeep", () =>
         {
-          game.PassPriorityTo(playerId);
+          game.GivePriorityTo(playerId);
         }),
       },
     };
@@ -56,7 +56,7 @@ public class TurnSystem
       PlayerId = playerId,
       Name = $"{playerName}'s Draw Step",
       Type = "Turn/Step/Draw",
-      Actions = new[]
+      Choices = new[]
       {
         new GameAction("Draw", () =>
         {
@@ -65,6 +65,8 @@ public class TurnSystem
           var cards = library.TakeLast(1);
           game.UpdateZone((Zones.Library, playerId), library.Except(cards));
           game.UpdateZone((Zones.Hand, playerId), hand.Concat(cards));
+
+          game.GivePriorityTo(playerId);
         }),
       },
     };

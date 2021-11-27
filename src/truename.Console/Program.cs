@@ -15,16 +15,16 @@ var game = ruleSystem.PlayGame();
 
 foreach (var @event in game)
 {
-  if (@event.Actions.Count() <= 1)
+  if (@event.Choices.Count() <= 1)
   {
     Console.WriteLine(@event.Name);
     if (!string.IsNullOrEmpty(@event.Description))
       Console.WriteLine(@event.Description);
 
-    if (@event.Actions.Any())
+    if (@event.Choices.Any())
     {
       @event
-        .Actions
+        .Choices
         .First()
         .Action();
     }

@@ -12,6 +12,6 @@ public static class GameEventHelpers
     return new SelectionPrompt<GameAction>()
       .Title(title)
       .PageSize(8)
-      .AddChoices(@event.Actions);
+      .AddChoices(@event.Choices);
   }
 }

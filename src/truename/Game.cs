@@ -98,7 +98,7 @@ public partial class Game : AggregateRoot
     Turns[ActivePlayerId]++;
   }
 
-  public void PassPriorityTo(string playerId)
+  public void GivePriorityTo(string playerId)
   {
     var @event = new PassPriority(playerId);
     Apply(@event);

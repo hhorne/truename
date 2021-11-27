@@ -1,4 +1,5 @@
 using truename.Effects;
+using truename.Effects.Predefined;
 
 namespace truename.Systems;
 
@@ -22,31 +23,22 @@ public class RuleSystem
   public IEnumerable<GameEvent> PlayGame()
   {
     foreach (var @event in GameLoop())
-    {
-      yield return @event;
-    }
+      yield return LoggedEvent(@event);
   }
+
+  public GameEvent LoggedEvent(GameEvent @event) => game.Log(@event);
 
   public IEnumerable<GameEvent> GameLoop()
   {
     foreach (var @event in DetermineTurnOrder())
-      yield return LoggedEvent(@event);
+      yield return @event;
 
     foreach (var @event in DrawOpeningHands())
-      yield return LoggedEvent(@event);
+      yield return @event;
 
     foreach (var @event in TakeTurns())
-    {
-      // game.ContinuousEffects.OfType<ReplacementEffect>()
-      // effect replacement?
-      if (@event.Type == "Untap")
-        yield return LoggedEvent(new GameEvent("Skipped Untap"));
-      else
-        yield return LoggedEvent(@event);
-    }
+      yield return @event;
   }
-
-  public GameEvent LoggedEvent(GameEvent @event) => game.Log(@event);
 
   IEnumerable<GameEvent> DetermineTurnOrder()
   {
@@ -62,7 +54,7 @@ public class RuleSystem
     {
       Name = $"{player.Name} won the die roll",
       Description = "Go First?",
-      Actions = new[]
+      Choices = new[]
       {
         new GameAction("Play", () => game.SetTurnOrder(turnOrder)),
         new GameAction("Draw", () => game.SetTurnOrder(turnOrder.Reverse())),
@@ -119,26 +111,16 @@ public class RuleSystem
   public IEnumerable<GameEvent> TakeTurns()
   {
     // this isn't event-sourced, maybe it doesn't need to be?
-    game.ContinuousEffects.Add(new SkipDraw((game, @event) =>
-    {
-      if (@event.Type == "Turn/Step/Draw")
-      {
-        var firstPlayer = game.TurnOrder.First();
-        var playerId = @event.PlayerId;
-        var turnNumber = game.Turns[playerId];
-        return turnNumber == 1 && firstPlayer == playerId;
-      }
+    game.ContinuousEffects.Add(new SkipFirstDraw());
 
-      return false;
-    }));
-
-    while (game.TurnOrder.Count > 1 && game.Turns[game.ActivePlayerId] < 4)
+    // for console test harness reasons
+    var arbitraryConditionToEndOn = () => game.Turns[game.ActivePlayerId] < 4;
+    while (game.TurnOrder.Count > 1 && arbitraryConditionToEndOn())
     {
       var turn = turnSystem.TakeTurn();
       foreach (var @event in turn)
       {
-        var replacement = game
-          .ContinuousEffects
+        var replacement = game.ContinuousEffects
           .OfType<ReplacementEffect>()
           .FirstOrDefault(x => x.AppliesTo(game, @event));
 

@@ -42,10 +42,10 @@ public class MulliganSystem
       {
         Name = $"{game.GetPlayerName(pId)}: Keep or Mulligan?",
         Description = $"Keep {DefaultHandSize - decisions[pId].Taken} or go down to {DefaultHandSize - (decisions[pId].Taken + 1)}?",
-        Actions = new[]
+        Choices = new[]
         {
-          new GameAction("Keep", () => { decisions[pId].Keep = true; }),
-          new GameAction("Mulligan", () => { decisions[pId].Taken++; }),
+          new GameAction("Keep", () => decisions[pId].Keep = true),
+          new GameAction("Mulligan", () => decisions[pId].Taken++),
         }
       });
 
@@ -74,7 +74,7 @@ public class MulliganSystem
         {
           Name = $"{playerName}: Pick a card to put back",
           Description = $"{remaining} remaining",
-          Actions = game.Zones[handId]
+          Choices = game.Zones[handId]
             .Except(decisions[playerId].PutBack)
             .Select(c => new GameAction(c.ToString(), () => PutBack(playerId, c)))
             .ToArray()
