@@ -15,7 +15,7 @@ var game = ruleSystem.PlayGame();
 
 foreach (var @event in game)
 {
-  if (@event.Choices.None())
+  if (@event.Choices.Length <= 1)
   {
     AnsiConsole.WriteLine(@event.Name);
     if (!string.IsNullOrEmpty(@event.Description))

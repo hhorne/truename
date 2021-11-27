@@ -4,10 +4,9 @@ public class MulliganSystem
 {
   int DefaultHandSize = 7;
   private readonly Game game;
-  private Dictionary<string, MulliganDecision> decisions = new();
-  public Dictionary<string, MulliganDecision> Decisions => decisions;
+  public Dictionary<string, MulliganDecision> Decisions { get; set; } = new();
 
-  public IEnumerable<string> StillDeciding => decisions
+  public IEnumerable<string> StillDeciding => Decisions
     .Where(d => !d.Value.Keep)
     .Select(d => d.Key);
 
@@ -18,7 +17,7 @@ public class MulliganSystem
 
   public void Init()
   {
-    decisions = game
+    Decisions = game
       .TurnOrder
       .ToDictionary(
         p => p,
@@ -42,24 +41,22 @@ public class MulliganSystem
       {
         PlayerId = pId,
         Name = $"{game.GetPlayerName(pId)}: Keep or Mulligan?",
-        Description = $"Keep {DefaultHandSize - decisions[pId].Taken} or go down to {DefaultHandSize - (decisions[pId].Taken + 1)}?",
+        Description = $"Keep {DefaultHandSize - Decisions[pId].Taken} or go down to {DefaultHandSize - (Decisions[pId].Taken + 1)}?",
         Choices = new[]
         {
-          new GameAction("Keep", () => { decisions[pId].Keep = true; }),
-          new GameAction("Mulligan", () => { decisions[pId].Taken++; }),
+          new GameAction("Keep", () => { Decisions[pId].Keep = true; }),
+          new GameAction("Mulligan", () => { Decisions[pId].Taken++; }),
         }
       });
 
     foreach (var choice in choices)
-    {
       yield return choice;
-    }
   }
 
   public IEnumerable<GameEvent> PutCardsBack()
   {
-    var players = decisions
-      .Where(d => d.Value.Keep && d.Value.Taken > 0)
+    var players = Decisions
+      .Where(d => d.Value.Keep && !d.Value.Done)
       .ToDictionary(d => d.Key, d => d.Value);
 
     foreach (var playerId in players.Keys)
@@ -73,33 +70,37 @@ public class MulliganSystem
         var remaining = decision.Taken - decision.PutBack.Count;
         yield return new GameEvent
         {
+          PlayerId = playerId,
           Name = $"{playerName}: Pick a card to put back",
           Description = $"{remaining} remaining",
           Choices = game.Zones[handId]
-            .Except(decisions[playerId].PutBack)
-            .Select(c => new GameAction(c.ToString(), () => PutBack(playerId, c)))
+            .Except(Decisions[playerId].PutBack)
+            .Select(c => new GameAction(c.ToString(), () => { PutBack(playerId, c); }))
             .ToArray()
         };
       }
 
+      Decisions[playerId].Done = true;
       var hand = game.Zones[handId];
-      var putBack = decisions[playerId].PutBack;
+      var putBack = Decisions[playerId].PutBack;
       var numPutBack = putBack.Count;
       var library = game.Zones[libraryId];
       game.UpdateZone(handId, hand.Except(putBack));
       game.UpdateZone(libraryId, putBack.Concat(library));
+
       yield return new GameEvent
       {
+        PlayerId = playerId,
         Name = $"{playerName} put back {numPutBack}",
         Description = $@"{putBack.Aggregate("", (agg, cur) =>
-        string.IsNullOrEmpty(agg)
-          ? $" - {cur}"
-          : $"{agg}\n - {cur}"
-      )}" + Environment.NewLine,
+          string.IsNullOrEmpty(agg)
+            ? $" - {cur}"
+            : $"{agg}\n - {cur}"
+        )}" + Environment.NewLine,
       };
     }
   }
 
   void PutBack(string playerId, Card card) =>
-    decisions[playerId].PutBack.Add(card);
+    Decisions[playerId].PutBack.Add(card);
 }
