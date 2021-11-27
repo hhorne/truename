@@ -8,8 +8,6 @@ public class RuleSystem
   private readonly MulliganSystem mulliganSystem;
   private readonly TurnSystem turnSystem;
 
-  (Zones, Guid?) handFor(Guid playerId) => (Zones.Hand, playerId);
-
   public RuleSystem(Game game)
   {
     this.game = game;
@@ -21,23 +19,25 @@ public class RuleSystem
 
   public IEnumerable<GameEvent> PlayGame()
   {
-    yield return DetermineTurnOrder();
-    yield return new GameEvent($"{game.ActivePlayer.Name} on the play");
+    foreach (var @event in DetermineTurnOrder())
+      yield return LoggedEvent(@event);
 
     foreach (var @event in DrawOpeningHands())
-      yield return @event;
+      yield return LoggedEvent(@event);
 
     foreach (var @event in TakeTurns())
     {
       // effect replacement?
       if (@event.Type == "Untap")
-        yield return new GameEvent("Skipped Untap");
+        yield return LoggedEvent(new GameEvent("Skipped Untap"));
       else
-        yield return @event;
+        yield return LoggedEvent(@event);
     }
   }
 
-  GameEvent DetermineTurnOrder()
+  public GameEvent LoggedEvent(GameEvent @event) => game.Log(@event);
+
+  IEnumerable<GameEvent> DetermineTurnOrder()
   {
     var turnOrder = game
       .Players
@@ -47,7 +47,7 @@ public class RuleSystem
 
     var winnerId = turnOrder.First();
     var player = game.Players[winnerId];
-    return new GameEvent
+    yield return new GameEvent
     {
       Name = $"{player.Name} won the die roll",
       Description = "Go First?",
@@ -57,6 +57,8 @@ public class RuleSystem
         new GameAction("Draw", () => game.SetTurnOrder(turnOrder.Reverse())),
       }
     };
+
+    yield return new GameEvent($"{game.ActivePlayer.Name} on the play");
   }
 
   IEnumerable<GameEvent> DrawOpeningHands()
@@ -78,7 +80,8 @@ public class RuleSystem
       }
 
       foreach (var playerId in stillDeciding)
-        yield return DrawHand(playerId);
+        foreach (var @event in DrawHand(playerId))
+          yield return @event;
 
       var mulliganChoices = mulliganSystem.DeclareMulligans();
       foreach (var @event in mulliganChoices)
@@ -87,8 +90,10 @@ public class RuleSystem
     while (mulliganSystem.StillDeciding.Any());
   }
 
-  GameEvent DrawHand(Guid playerId)
+  IEnumerable<GameEvent> DrawHand(string playerId)
   {
+    var playerName = game.GetPlayerName(playerId);
+    yield return new GameEvent($"{playerName} draws hand:");
     const int DefaultHandSize = 7;
     var cardsDrawn = new List<Card>();
     for (int i = 0; i < DefaultHandSize; i++)
@@ -96,26 +101,17 @@ public class RuleSystem
       var cards = librarySystem.TakeTop(playerId);
       handSystem.Draw(playerId, cards);
       cardsDrawn.AddRange(cards);
+      yield return new GameEvent($" - {cards.First()}");
     }
-
-    return new GameEvent
-    {
-      Name = $"{game.GetPlayerName(playerId)} draws...",
-      Description = $@"{cardsDrawn.Aggregate("", (agg, cur) =>
-        string.IsNullOrEmpty(agg)
-          ? $" - {cur}"
-          : $"{agg}\n - {cur}"
-      )}" + Environment.NewLine,
-    };
   }
 
   public IEnumerable<GameEvent> TakeTurns()
   {
-    do
+    while (game.TurnOrder.Count > 1)
     {
       var turn = turnSystem.TakeTurn();
       foreach (var @event in turn)
         yield return @event;
-    } while (game.TurnOrder.Count > 1);
+    }
   }
 }

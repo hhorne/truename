@@ -1,3 +1,3 @@
 namespace truename.Events;
 
-public record UpdateActivePlayer(Guid PlayerId);
+public record UpdateActivePlayer(string PlayerId);

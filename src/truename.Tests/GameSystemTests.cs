@@ -10,24 +10,47 @@ public class GameSystemTests
   [Fact]
   public void Test1()
   {
-    var game = new Game();
-    var p1 = new Player(
+    var game = new Game(new[]{
+      new Player(
+        "tron_travolta",
+        TestData.GrixisDeck
+      ),
+      new Player(
+        "typedef",
+        TestData.ReanimatorDeck
+      )
+    });
+
+    game.SetTurnOrder(new[]
+    {
       "tron_travolta",
-      TestData.GrixisDeck
-    );
+      "typedef"
+    });
 
-    var p2 = new Player(
-      "typedef",
-      TestData.ReanimatorDeck
-    );
-
-    game.Players = new Dictionary<Guid, Player>
+    var @event = new GameEvent
+    {
+      PlayerId = game.ActivePlayerId,
+      Name = $"{game.ActivePlayer.Name}'s Draw Step",
+      Type = "Turn/Step/Draw",
+      Actions = new[]
       {
-          { p1.Id, p1 },
-          { p2.Id, p2 }
-      };
-
-    var ruleSystem = new RuleSystem(game);
-    ruleSystem.PlayGame();
+        new GameAction("Draw", () => {}),
+      },
+    };
   }
+}
+
+public class ContinuousEffect
+{
+  Predicate<Game> condition = g => false;
+  Predicate<Game> expired = g => false;
+  public Action Effect { get; set; } = () => { };
+
+  public bool Applies(Game g) => condition(g);
+  public bool Expired(Game g) => expired(g);
+}
+
+public class ReplacementEffect : ContinuousEffect
+{
+
 }

@@ -9,14 +9,14 @@ public class HandSystem
     this.game = game;
   }
 
-  public void Draw(Guid playerId, IEnumerable<Card> cards)
+  public void Draw(string playerId, IEnumerable<Card> cards)
   {
     var handId = (Zones.Hand, playerId);
     var hand = game.Zones[handId].Concat(cards);
     game.UpdateZone(handId, hand);
   }
 
-  public IEnumerable<Card> Take(Guid playerId, IEnumerable<Card> cards)
+  public IEnumerable<Card> Take(string playerId, IEnumerable<Card> cards)
   {
     var handId = (Zones.Hand, playerId);
     var cardsTaken = game.Zones[handId].Where(cards.Contains);
@@ -26,6 +26,6 @@ public class HandSystem
     return cardsTaken;
   }
 
-  public IEnumerable<Card> HandFor(Guid playerId) =>
+  public IEnumerable<Card> HandFor(string playerId) =>
     game.Zones[(Zones.Hand, playerId)];
 }

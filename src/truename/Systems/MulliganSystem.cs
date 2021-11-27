@@ -4,10 +4,10 @@ public class MulliganSystem
 {
   int DefaultHandSize = 7;
   private readonly Game game;
-  private Dictionary<Guid, MulliganDecision> decisions = new();
-  public Dictionary<Guid, MulliganDecision> Decisions => decisions;
+  private Dictionary<string, MulliganDecision> decisions = new();
+  public Dictionary<string, MulliganDecision> Decisions => decisions;
 
-  public IEnumerable<Guid> StillDeciding => decisions
+  public IEnumerable<string> StillDeciding => decisions
     .Where(d => !d.Value.Keep)
     .Select(d => d.Key);
 
@@ -99,6 +99,6 @@ public class MulliganSystem
     }
   }
 
-  void PutBack(Guid playerId, Card card) =>
+  void PutBack(string playerId, Card card) =>
     decisions[playerId].PutBack.Add(card);
 }

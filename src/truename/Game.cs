@@ -8,11 +8,12 @@ using ZoneKeys = truename.Zones;
 public partial class Game : AggregateRoot
 {
   public int Number { get; set; }
-  public List<Guid> TurnOrder { get; set; } = new();
-  public Dictionary<Guid, Player> Players { get; set; } = new();
-  public Guid ActivePlayerId { get; set; }
+  public List<string> TurnOrder { get; set; } = new();
+  public Dictionary<string, Player> Players { get; set; } = new();
+  public string ActivePlayerId { get; set; } = string.Empty;
   public Player ActivePlayer => Players[ActivePlayerId];
-  public Dictionary<(ZoneKeys, Guid?), IEnumerable<Card>> Zones { get; set; } = new();
+  public Dictionary<(ZoneKeys, string), IEnumerable<Card>> Zones { get; set; } = new();
+  public List<GameEvent> EventLog { get; set; } = new List<GameEvent>();
 
   public Game() { }
 
@@ -40,9 +41,9 @@ public partial class Game : AggregateRoot
 
     Zones = new()
     {
-      [(ZoneKeys.Battlefield, null)] = Enumerable.Empty<Card>(),
-      [(ZoneKeys.Stack, null)] = new Queue<Card>(),
-      [(ZoneKeys.Exile, null)] = Enumerable.Empty<Card>()
+      [(ZoneKeys.Battlefield, string.Empty)] = Enumerable.Empty<Card>(),
+      [(ZoneKeys.Stack, string.Empty)] = new Queue<Card>(),
+      [(ZoneKeys.Exile, string.Empty)] = Enumerable.Empty<Card>()
     };
 
     Players.ForEach(p =>
@@ -54,7 +55,7 @@ public partial class Game : AggregateRoot
     });
   }
 
-  public void SetTurnOrder(IEnumerable<Guid> turnOrder)
+  public void SetTurnOrder(IEnumerable<string> turnOrder)
   {
     var @event = new SetTurnOrder(turnOrder);
     Apply(@event);
@@ -67,7 +68,7 @@ public partial class Game : AggregateRoot
     ActivePlayerId = TurnOrder.First();
   }
 
-  public void UpdateZone((ZoneKeys, Guid?) zoneId, IEnumerable<Card> cards)
+  public void UpdateZone((ZoneKeys, string) zoneId, IEnumerable<Card> cards)
   {
     var @event = new UpdateZone(zoneId, cards);
     Apply(@event);
@@ -79,7 +80,7 @@ public partial class Game : AggregateRoot
     Zones[@event.ZoneId] = @event.Cards;
   }
 
-  public void UpdateActivePlayer(Guid playerId)
+  public void UpdateActivePlayer(string playerId)
   {
     var @event = new UpdateActivePlayer(playerId);
     Apply(@event);
@@ -89,5 +90,18 @@ public partial class Game : AggregateRoot
   public void Apply(UpdateActivePlayer @event)
   {
     ActivePlayerId = @event.PlayerId;
+  }
+
+  public GameEvent Log(GameEvent gameEvent)
+  {
+    var @event = new LogGameEvent(gameEvent);
+    Apply(@event);
+    AddUncommittedEvent(@event);
+    return gameEvent;
+  }
+
+  public void Apply(LogGameEvent @event)
+  {
+    EventLog.Add(@event.GameEvent);
   }
 }

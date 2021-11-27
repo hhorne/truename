@@ -51,5 +51,5 @@ public static class CollectionHelpers
 
 public static class GameHelpers
 {
-  public static string GetPlayerName(this Game g, Guid pId) => g.Players[pId].Name;
+  public static string GetPlayerName(this Game g, string pId) => g.Players[pId].Name;
 }

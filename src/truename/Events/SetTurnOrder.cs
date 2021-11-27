@@ -1,4 +1,4 @@
 namespace truename.Events;
 
-public record SetTurnOrder(IEnumerable<Guid> TurnOrder);
+public record SetTurnOrder(IEnumerable<string> TurnOrder);
 

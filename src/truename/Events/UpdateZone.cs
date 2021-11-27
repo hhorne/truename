@@ -1,6 +1,6 @@
 namespace truename.Events;
 
 public record UpdateZone(
-  (Zones, Guid?) ZoneId,
+  (Zones, string) ZoneId,
   IEnumerable<Card> Cards
 );

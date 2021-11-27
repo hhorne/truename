@@ -3,14 +3,14 @@ namespace truename.Systems;
 public class LibrarySystem
 {
   private readonly Game game;
-  (Zones, Guid?) libraryFor(Guid playerId) => (Zones.Library, playerId);
+  (Zones, string) libraryFor(string playerId) => (Zones.Library, playerId);
 
   public LibrarySystem(Game game)
   {
     this.game = game;
   }
 
-  public GameEvent Shuffle(Guid playerId)
+  public GameEvent Shuffle(string playerId)
   {
     var libraryId = libraryFor(playerId);
     var library = game
@@ -23,7 +23,7 @@ public class LibrarySystem
     return new GameEvent($"{game.GetPlayerName(playerId)} [Shuffle]s their [Library]");
   }
 
-  public IEnumerable<Card> TakeTop(Guid playerId, int count = 1)
+  public IEnumerable<Card> TakeTop(string playerId, int count = 1)
   {
     var libraryId = libraryFor(playerId);
     var library = game.Zones[libraryId];
@@ -32,7 +32,7 @@ public class LibrarySystem
     return toDraw;
   }
 
-  public GameEvent PutOnBottom(Guid playerId, IEnumerable<Card> cards)
+  public GameEvent PutOnBottom(string playerId, IEnumerable<Card> cards)
   {
     var libraryId = libraryFor(playerId);
 
