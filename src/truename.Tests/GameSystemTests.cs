@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using truename.Effects;
+using truename.Effects.Predefined;
 
 namespace truename.Tests;
 
@@ -32,26 +33,7 @@ public class GameSystemTests
       },
     };
 
-    GameCondition isFirstDraw = (game, @event) =>
-    {
-      if (@event.Type == drawEventId)
-      {
-        var firstPlayer = game.TurnOrder.First();
-        var playerId = @event.PlayerId;
-        var turnNumber = game.Turns[playerId];
-        return turnNumber == 1 && firstPlayer == playerId;
-      }
-
-      return false;
-    };
-
-    var skip = new GameEvent
-    {
-      Name = "Skip Draw",
-      Type = $"Skip/{drawEventId}"
-    };
-
-    var skipDraw = new ReplacementEffect(isFirstDraw, skip);
+    var skipDraw = new SkipFirstDraw();
     Assert.True(skipDraw.AppliesTo(game, @event));
   }
 
@@ -66,18 +48,7 @@ public class GameSystemTests
     var game = new Game(players);
     game.SetTurnOrder(players.Select(p => p.Id));
 
-    var skipDraw = new SkipDraw((game, @event) =>
-    {
-      if (@event.Type == "Turn/Step/Draw")
-      {
-        var firstPlayer = game.TurnOrder.First();
-        var playerId = @event.PlayerId;
-        var turnNumber = game.Turns[playerId];
-        return turnNumber == 1 && firstPlayer == playerId;
-      }
-
-      return false;
-    });
+    var skipDraw = new SkipFirstDraw();
 
     game.ContinuousEffects.Add(skipDraw);
     Assert.True(game.ContinuousEffects.OfType<ReplacementEffect>().Any());

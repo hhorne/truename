@@ -40,12 +40,13 @@ public class MulliganSystem
     var choices = StillDeciding
       .Select(pId => new GameEvent
       {
+        PlayerId = pId,
         Name = $"{game.GetPlayerName(pId)}: Keep or Mulligan?",
         Description = $"Keep {DefaultHandSize - decisions[pId].Taken} or go down to {DefaultHandSize - (decisions[pId].Taken + 1)}?",
         Choices = new[]
         {
-          new GameAction("Keep", () => decisions[pId].Keep = true),
-          new GameAction("Mulligan", () => decisions[pId].Taken++),
+          new GameAction("Keep", () => { decisions[pId].Keep = true; }),
+          new GameAction("Mulligan", () => { decisions[pId].Taken++; }),
         }
       });
 

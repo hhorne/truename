@@ -15,11 +15,11 @@ var game = ruleSystem.PlayGame();
 
 foreach (var @event in game)
 {
-  if (@event.Choices.Count() <= 1)
+  if (@event.Choices.None())
   {
-    Console.WriteLine(@event.Name);
+    AnsiConsole.WriteLine(@event.Name);
     if (!string.IsNullOrEmpty(@event.Description))
-      Console.WriteLine(@event.Description);
+      AnsiConsole.WriteLine(@event.Description);
   }
   else
   {

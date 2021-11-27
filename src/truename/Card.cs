@@ -14,5 +14,5 @@ public class Card
     Name = name;
   }
 
-  public override string ToString() => $"{Name} ({Id})";
+  public override string ToString() => $"{Name} ({Id.ToString().Substring(0, 8)})";
 }

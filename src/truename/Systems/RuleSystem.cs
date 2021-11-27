@@ -23,11 +23,7 @@ public class RuleSystem
   public IEnumerable<GameEvent> PlayGame()
   {
     foreach (var @event in GameLoop())
-    {
       yield return LoggedEvent(@event);
-      if (@event.Choices.Length == 1)
-        @event.Choices.First().Action();
-    }
   }
 
   public GameEvent LoggedEvent(GameEvent @event) => game.Log(@event);
@@ -124,12 +120,21 @@ public class RuleSystem
       var turn = turnSystem.TakeTurn();
       foreach (var @event in turn)
       {
-        var replacement = game.ContinuousEffects
-          .OfType<ReplacementEffect>()
-          .FirstOrDefault(x => x.AppliesTo(game, @event));
-
-        yield return replacement?.Event ?? @event;
+        var replacement = CheckForReplacement(@event);
+        yield return replacement ?? @event;
       }
     }
+  }
+
+  public GameEvent? CheckForReplacement(GameEvent @event)
+  {
+    var replacement = game.ContinuousEffects
+      .OfType<ReplacementEffect>()
+      .FirstOrDefault(x => x.AppliesTo(game, @event));
+
+    if (replacement is not null && replacement.IsExpired(game, @event))
+      game.ContinuousEffects.Remove(replacement);
+
+    return replacement?.Event(game, @event);
   }
 }
