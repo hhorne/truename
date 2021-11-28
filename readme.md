@@ -10,6 +10,27 @@ three phases to the implementation plan:
 - 🔲 client that accepts game state represented by json and resolves any pending interactions
 - 🔲 user oriented game client
 
+## Getting Started
+
+`truename` is build using v6 of `dotnet`.
+
+### Commands
+
+From the root directory:
+
+#### Build
+
+`dotnet build src`
+
+#### Run Tests
+
+`dotnet test src`
+
+#### Run the Console Test Harness
+
+`dotnet run --project src/truename.Console`
+
+
 ## Resources
 
 * https://scryfall.com/docs/syntax - search magic cards
