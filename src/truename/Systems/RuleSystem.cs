@@ -184,6 +184,10 @@ public class RuleSystem
           foreach (var handler in TurnBasedActions[result.Type])
             yield return handler(result);
         }
+
+        // handle priority
+        // foreach (var @event in timingSystem.ExchangePriority())
+        //   yield @event;
       }
     }
   }

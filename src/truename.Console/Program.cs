@@ -1,4 +1,5 @@
 ﻿using Spectre.Console;
+using System.Linq;
 using truename;
 using truename.Systems;
 
