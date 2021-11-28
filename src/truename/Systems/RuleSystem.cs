@@ -118,6 +118,8 @@ public class RuleSystem
       Choices = new[]
       {
         new GameAction("Play", () => game.SetTurnOrder(turnOrder)),
+        // defintely not according to the Comprehensive Rules but were just
+        // focusing on 1v1 right now
         new GameAction("Draw", () => game.SetTurnOrder(turnOrder.Reverse())),
       }
     };
