@@ -40,12 +40,15 @@ From the root directory:
 * https://mtg.fandom.com/wiki/Object 
 * https://mtg.fandom.com/wiki/Layer
 
-# Layer System: Interesting Cards + Interactions
+## Layer System: Interesting Cards + Interactions
 * [Urza's Saga](https://scryfall.com/card/mh2/259/urzas-saga)
 * [Thespian's Stage](https://scryfall.com/card/2xm/327/thespians-stage)
 * [Blood Moon](https://scryfall.com/card/2xm/118/blood-moon)
 
 While Blood Moon turns either Saga or Stage into a `Basic Mountain` the way layers and granted abilities work means they do not lose their notable abilities. Ideal for testing complex interactions in the layer system.
 
-# Turns
-* [Turns.md](reference\turn-notes.md)
+## Reference Materials
+
+* [Interaction of Continuous Effects, Layers 1-6](/Interaction_of_Continuous_Effects_Layers_1-6/index.md)
+* [Turns](/reference/turn-notes.md)
+* [Zones](/reference/zones.md)
