@@ -79,16 +79,16 @@ public class MulliganSystem
           Description = $"{remaining} remaining",
           Choices = game.Zones[handId]
             .Except(Decisions[playerId].PutBack)
-            .Select(c => new GameAction(c.ToString(), () => { PutBack(playerId, c); }))
+            .Select(c => new GameAction(c.ToString(), () => { PickToPutBack(playerId, c); }))
             .ToArray()
         };
       }
 
-      Decisions[playerId].Done = true;
       var hand = game.Zones[handId];
       var putBack = Decisions[playerId].PutBack;
       var numPutBack = putBack.Count;
       var library = game.Zones[libraryId];
+      Decisions[playerId].Done = true;
       game.UpdateZone(handId, hand.Except(putBack));
       game.UpdateZone(libraryId, putBack.Concat(library));
 
@@ -109,6 +109,11 @@ public class MulliganSystem
     }
   }
 
-  void PutBack(string playerId, Card card) =>
-    Decisions[playerId].PutBack.Add(card);
+  void PickToPutBack(string playerId, Card card)
+  {
+    if (Decisions[playerId].PutBack.Any(c => c.Id == card.Id))
+      Decisions[playerId].PutBack.Remove(card);
+    else
+      Decisions[playerId].PutBack.Add(card);
+  }
 }

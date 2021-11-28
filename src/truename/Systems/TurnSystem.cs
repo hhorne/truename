@@ -11,19 +11,10 @@ public class TurnSystem
 
   public IEnumerable<GameEvent> TakeTurn()
   {
-    var playerId = game.ActivePlayerId;
     var activePlayer = game.ActivePlayer;
+    var playerId = activePlayer.Id;
     var playerName = activePlayer.Name;
 
-    // Beginning Phase
-    // - Untap
-    // --- The active player determines which permanents
-    // --- controlled by that player untap, then untaps
-    // --- all those permanents simultaneously. (The player
-    // --- will untap all permanents they control unless a
-    // --- card effect prevents this.)
-    //
-    // Requires: Untap Effect, Replacement Effect
     yield return new GameEvent
     {
       PlayerId = playerId,
@@ -31,7 +22,6 @@ public class TurnSystem
       Type = Turn.Untap,
     };
 
-    // - Upkeep
     yield return new GameEvent
     {
       PlayerId = playerId,
@@ -39,7 +29,6 @@ public class TurnSystem
       Type = Turn.Upkeep,
     };
 
-    // - Draw
     yield return new GameEvent
     {
       PlayerId = playerId,

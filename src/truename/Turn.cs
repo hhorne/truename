@@ -2,7 +2,7 @@
 
 public class Turn
 {
-  private static readonly string BaseEventKey = "Turn/Step/";
+  public static readonly string BaseEventKey = "Turn/Step/";
   public static readonly string Untap = $"{BaseEventKey}{nameof(Untap)}";
   public static readonly string Upkeep = $"{BaseEventKey}{nameof(Upkeep)}";
   public static readonly string Draw = $"{BaseEventKey}{nameof(Draw)}";

@@ -17,6 +17,7 @@ public partial class Game : AggregateRoot
   public Dictionary<(ZoneKeys, string), IEnumerable<Card>> Zones { get; set; } = new();
   public List<GameEvent> EventLog { get; set; } = new();
   public Dictionary<string, int> Turns { get; set; } = new();
+  public string TurnStep { get; set; }
   public List<ContinuousEffect> ContinuousEffects { get; set; } = new();
 
   public Game() { }
@@ -108,6 +109,18 @@ public partial class Game : AggregateRoot
   public void Apply(PassPriority @event)
   {
     PriorityHolderId = @event.PlayerId;
+  }
+
+  public void UpdateTurnStep(string turnStep)
+  {
+    var @event = new UpdateTurnStep(turnStep);
+    Apply(@event);
+    AddUncommittedEvent(@event);
+  }
+
+  public void Apply(UpdateTurnStep @event)
+  {
+    TurnStep = @event.TurnStep;
   }
 
   public GameEvent Log(GameEvent gameEvent)
