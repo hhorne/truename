@@ -10,6 +10,7 @@ public class RuleSystem
   private readonly LibrarySystem librarySystem;
   private readonly MulliganSystem mulliganSystem;
   private readonly TurnSystem turnSystem;
+  private readonly Dictionary<string, IEnumerable<Func<GameEvent, GameEvent>>> TurnBasedActions = new();
 
   public RuleSystem(Game game)
   {
@@ -18,12 +19,27 @@ public class RuleSystem
     librarySystem = new LibrarySystem(game);
     mulliganSystem = new MulliganSystem(game);
     turnSystem = new TurnSystem(game);
+    TurnBasedActions = new()
+    {
+      [TurnSystem.Untap] = new[]
+      {
+        (GameEvent @event) => new GameEvent(" - Phasing"),
+        (GameEvent @event) => new GameEvent(" - Day/Night"),
+        (GameEvent @event) => new GameEvent(" - Untap Permanents"),
+      },
+      [TurnSystem.Draw] = new[]
+      {
+        (GameEvent @event) => DrawFromLibrary(game.ActivePlayerId),
+      }
+    };
   }
 
   public IEnumerable<GameEvent> PlayGame()
   {
     foreach (var @event in GameLoop())
+    {
       yield return LoggedEvent(@event);
+    }
   }
 
   public GameEvent LoggedEvent(GameEvent @event) => game.Log(@event);
@@ -98,14 +114,18 @@ public class RuleSystem
     var playerName = game.GetPlayerName(playerId);
     yield return new GameEvent($"{playerName} draws hand:");
     const int DefaultHandSize = 7;
-    var cardsDrawn = new List<Card>();
     for (int i = 0; i < DefaultHandSize; i++)
     {
-      var cards = librarySystem.TakeTop(playerId);
-      handSystem.Draw(playerId, cards);
-      cardsDrawn.AddRange(cards);
-      yield return new GameEvent($" - {cards.First()}");
+      yield return DrawFromLibrary(playerId);
     }
+  }
+
+  GameEvent DrawFromLibrary(string playerId)
+  {
+    var playerName = game.GetPlayerName(playerId);
+    var cards = librarySystem.TakeTop(playerId);
+    handSystem.Draw(playerId, cards);
+    return new GameEvent($" - {cards.First()}");
   }
 
   public IEnumerable<GameEvent> TakeTurns()
@@ -121,7 +141,14 @@ public class RuleSystem
       foreach (var @event in turn)
       {
         var replacement = CheckForReplacement(@event);
-        yield return replacement ?? @event;
+        var result = replacement ?? @event;
+        yield return result;
+
+        if (TurnBasedActions.ContainsKey(result.Type))
+        {
+          foreach (var handler in TurnBasedActions[result.Type])
+            yield return handler(result);
+        }
       }
     }
   }

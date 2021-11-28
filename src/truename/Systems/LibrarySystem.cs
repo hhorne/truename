@@ -20,7 +20,7 @@ public class LibrarySystem
       .ToList();
 
     game.UpdateZone(libraryId, library);
-    return new GameEvent($"{game.GetPlayerName(playerId)} [Shuffle]s their [Library]");
+    return new GameEvent($"[bold darkslategray3]{game.GetPlayerName(playerId)}[/] [bold gold3_1]Shuffles[/] their [bold mediumorchid1]Library[/]");
   }
 
   public IEnumerable<Card> TakeTop(string playerId, int count = 1)
@@ -41,6 +41,6 @@ public class LibrarySystem
       cards.Concat(game.Zones[libraryId])
     );
 
-    return new GameEvent($"{game.GetPlayerName(playerId)} puts [Hand] on the bottom of their [Library]");
+    return new GameEvent($"[bold darkslategray3]{game.GetPlayerName(playerId)}[/] puts [bold gold3_1]Hand[/] on the bottom of their [bold mediumorchid1]Library[/]");
   }
 }

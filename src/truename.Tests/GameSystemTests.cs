@@ -27,10 +27,6 @@ public class GameSystemTests
       Name = "Draw Step",
       Description = $"{game.ActivePlayer.Name}'s Draw Step",
       Type = drawEventId,
-      Choices = new[]
-      {
-        new GameAction("Draw", () => {}),
-      },
     };
 
     var skipDraw = new SkipFirstDraw();

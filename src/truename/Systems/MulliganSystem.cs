@@ -90,16 +90,20 @@ public class MulliganSystem
       game.UpdateZone(handId, hand.Except(putBack));
       game.UpdateZone(libraryId, putBack.Concat(library));
 
-      yield return new GameEvent
+      if (numPutBack > 0)
       {
-        PlayerId = playerId,
-        Name = $"{playerName} put back {numPutBack}",
-        Description = $@"{putBack.Aggregate("", (agg, cur) =>
-          string.IsNullOrEmpty(agg)
-            ? $" - {cur}"
-            : $"{agg}\n - {cur}"
-        )}" + Environment.NewLine,
-      };
+        var listOfCards = string.Join(
+          Environment.NewLine,
+          putBack.Select(c => $" - {c}")
+        );
+
+        yield return new GameEvent
+        {
+          PlayerId = playerId,
+          Name = $"{playerName} put back {numPutBack}",
+          Description = $"{listOfCards}{Environment.NewLine}",
+        };
+      }
     }
   }
 

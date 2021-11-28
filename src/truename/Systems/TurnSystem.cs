@@ -2,6 +2,27 @@ namespace truename.Systems;
 
 public class TurnSystem
 {
+  private static readonly string BaseEventKey = "Turn/Step/";
+  public static readonly string Untap = $"{BaseEventKey}{nameof(Untap)}";
+  public static readonly string Upkeep = $"{BaseEventKey}{nameof(Upkeep)}";
+  public static readonly string Draw = $"{BaseEventKey}{nameof(Draw)}";
+  public static readonly string PreCombatMain = $"{BaseEventKey}{nameof(PreCombatMain)}";
+  public static readonly string BeginCombat = $"{BaseEventKey}{nameof(BeginCombat)}";
+  public static readonly string DeclareAttackers = $"{BaseEventKey}{nameof(DeclareAttackers)}";
+  public static readonly string DeclareBlockers = $"{BaseEventKey}{nameof(DeclareBlockers)}";
+  public static readonly string CombatDamage = $"{BaseEventKey}{nameof(CombatDamage)}";
+  public static readonly string EndCombat = $"{BaseEventKey}{nameof(EndCombat)}";
+  public static readonly string PostCombatMain = $"{BaseEventKey}{nameof(PostCombatMain)}";
+  public static readonly string EndStep = $"{BaseEventKey}{nameof(EndStep)}";
+  public static readonly string Cleanup = $"{BaseEventKey}{nameof(Cleanup)}";
+
+  public static readonly string[] BeginningPhase = new[]
+  {
+    Untap,
+    Upkeep,
+    Draw
+  };
+
   private readonly Game game;
 
   public TurnSystem(Game game)
@@ -28,11 +49,7 @@ public class TurnSystem
     {
       PlayerId = playerId,
       Name = $"{playerName}'s Untap Step",
-      Type = "Turn/Step/Untap",
-      Choices = new[]
-      {
-        new GameAction("Untap", () => {}),
-      },
+      Type = Untap,
     };
 
     // - Upkeep
@@ -40,14 +57,7 @@ public class TurnSystem
     {
       PlayerId = playerId,
       Name = $"{playerName}'s Upkeep",
-      Type = "Turn/Step/Upkeep",
-      Choices = new[]
-      {
-        new GameAction("Upkeep", () =>
-        {
-          game.GivePriorityTo(playerId);
-        }),
-      },
+      Type = Upkeep,
     };
 
     // - Draw
@@ -55,20 +65,15 @@ public class TurnSystem
     {
       PlayerId = playerId,
       Name = $"{playerName}'s Draw Step",
-      Type = "Turn/Step/Draw",
-      Choices = new[]
-      {
-        new GameAction("Draw", () =>
-        {
-          var library = game.Zones[(Zones.Library, playerId)];
-          var hand =   game.Zones[(Zones.Hand, playerId)];
-          var cards = library.TakeLast(1);
-          game.UpdateZone((Zones.Library, playerId), library.Except(cards));
-          game.UpdateZone((Zones.Hand, playerId), hand.Concat(cards));
+      Type = Draw,
+    };
 
-          game.GivePriorityTo(playerId);
-        }),
-      },
+    yield return new GameEvent
+    {
+      PlayerId = playerId,
+      Name = $"{playerName}'s Pre-Combat Main Phase",
+      Description = "[white italic] - Play lands and cast spells[/]",
+      Type = PreCombatMain,
     };
 
     var turnOrder = game.TurnOrder;

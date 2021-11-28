@@ -17,9 +17,9 @@ foreach (var @event in game)
 {
   if (@event.Choices.Length <= 1)
   {
-    AnsiConsole.WriteLine(@event.Name);
+    AnsiConsole.MarkupLine(@event.Name);
     if (!string.IsNullOrEmpty(@event.Description))
-      AnsiConsole.WriteLine(@event.Description);
+      AnsiConsole.MarkupLine(@event.Description);
   }
   else
   {
