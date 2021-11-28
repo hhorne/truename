@@ -49,6 +49,6 @@ While Blood Moon turns either Saga or Stage into a `Basic Mountain` the way laye
 
 ## Reference Materials
 
-* [Interaction of Continuous Effects, Layers 1-6](/Interaction_of_Continuous_Effects_Layers_1-6/index.md)
+* [Interaction of Continuous Effects, Layers 1-6](/reference/Interaction_of_Continuous_Effects_Layers_1-6/index.md)
 * [Turns](/reference/turn-notes.md)
 * [Zones](/reference/zones.md)
