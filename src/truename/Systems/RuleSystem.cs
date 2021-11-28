@@ -29,11 +29,11 @@ public class RuleSystem
         },
         (GameEvent @event) => new GameEvent("502.2. Day/Night")
         {
-          Description = "If itís day and the previous turnís active player didnít cast any spells during that turn, it becomes night. If itís night and the previous turnís active player cast two or more spells during that turn, it becomes day. If itís neither day nor night, this check doesnít happen and it remains neither.",
+          Description = "If it‚Äôs day and the previous turn‚Äôs active player didn‚Äôt cast any spells during that turn, it becomes night. If it‚Äôs night and the previous turn‚Äôs active player cast two or more spells during that turn, it becomes day. If it‚Äôs neither day nor night, this check doesn‚Äôt happen and it remains neither.",
         },
         (GameEvent @event) => new GameEvent("502.3. Untap Permanents")
         {
-          Description = "The active player determines which permanents they control will untap. Then they untap them all simultaneously. This turn-based action doesnít use the stack. All of a playerís permanents untap unless an effect prevents one or more of a playerís permanents from untapping.",
+          Description = "The active player determines which permanents they control will untap. Then they untap them all simultaneously. This turn-based action doesn‚Äôt use the stack. All of a player‚Äôs permanents untap unless an effect prevents one or more of a player‚Äôs permanents from untapping.",
         },
       },
       [Turn.Draw] = new[]
@@ -44,7 +44,7 @@ public class RuleSystem
       {
         (GameEvent @event) => new GameEvent("505.4. Sagas")
         {
-          Description = "If the active player controls one or more Saga enchantments and itís the active playerís precombat main phase, the active player puts a lore counter on each Saga they control.",
+          Description = "If the active player controls one or more Saga enchantments and it‚Äôs the active player‚Äôs precombat main phase, the active player puts a lore counter on each Saga they control.",
         },
       },
       [Turn.DeclareAttackers] = new[]
@@ -71,11 +71,11 @@ public class RuleSystem
       },
       [Turn.Cleanup] = new[]
       {
-        (GameEvent @event) => new GameEvent("514.1. active playerís hand contains more cards than their maximum hand size (normally seven), they discard enough cards to reduce their hand size to that number."),
+        (GameEvent @event) => new GameEvent("514.1. active player‚Äôs hand contains more cards than their maximum hand size (normally seven), they discard enough cards to reduce their hand size to that number."),
         (GameEvent @event) => new GameEvent("514.2. Damage marked on permanents is removed, all \"until end of turn\" and \"this turn\" effects end."),
         (GameEvent @event) => new GameEvent("514.3. Normally, no player receives priority during the cleanup step, so no spells can be cast and no abilities can be activated. However, this rule is subject to the following exception: ")
         {
-          Description = $"514.3a At this point, the game checks to see if any state-based actions would be performed and/or any triggered abilities are waiting to be put onto the stack (including those that trigger ìat the beginning of the next cleanup stepî). If so, those state-based actions are performed, then those triggered abilities are put on the stack, then the active player gets priority. Players may cast spells and activate abilities. Once the stack is empty and all players pass in succession, another cleanup step begins."
+          Description = $"514.3a At this point, the game checks to see if any state-based actions would be performed and/or any triggered abilities are waiting to be put onto the stack (including those that trigger ‚Äúat the beginning of the next cleanup step‚Äù). If so, those state-based actions are performed, then those triggered abilities are put on the stack, then the active player gets priority. Players may cast spells and activate abilities. Once the stack is empty and all players pass in succession, another cleanup step begins."
         },
       },
     };
@@ -207,18 +207,6 @@ public class RuleSystem
         //   yield @event;
       }
     }
-  }
-
-  public GameEvent? CheckForReplacement(GameEvent @event)
-  {
-    var replacement = game.ContinuousEffects
-      .OfType<ReplacementEffect>()
-      .FirstOrDefault(x => x.AppliesTo(game, @event));
-
-    if (replacement is not null && replacement.IsExpired(game, @event))
-      game.ContinuousEffects.Remove(replacement);
-
-    return replacement?.CreateReplacement(game, @event);
   }
 
   public bool TryGetReplacementEffect(GameEvent @event, out GameEvent? replacement)
