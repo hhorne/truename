@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using truename.Systems;
@@ -12,7 +13,9 @@ namespace truename.Wpf
   {
     private Player[] players;
     private Game match;
+    private RuleSystem ruleSystem;
     private IEnumerable<GameEvent> game;
+    private ObservableCollection<GameEvent> gameEvents;
 
     public MainWindow()
     {
@@ -24,21 +27,19 @@ namespace truename.Wpf
         new Player("typedef", TestData.ReanimatorDeck),
       };
 
-      var gameNum = 1;
-      match = new Game(gameNum, players);
-      var ruleSystem = new RuleSystem(match);
+      match = new Game(players);
+      ruleSystem = new RuleSystem(match);
       game = ruleSystem.PlayGame();
-      
-      var events = new List<GameEvent>();
+
+      gameEvents = new ObservableCollection<GameEvent>(match.EventLog);
+      GameLog.DataContext = gameEvents;
 
       foreach (var @event in game)
       {
         if (@event.Choices.Any())
           @event.Choices.First().Action();
-        events.Add(@event);
+        gameEvents.Add(@event);
       }
-      
-      DataContext = match;
     }
   }
 }

@@ -14,7 +14,7 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <ScrollViewer Width="auto" Grid.Column="3">
-            <ItemsControl ItemsSource="{Binding EventLog}" DisplayMemberPath="Name" />
+            <ItemsControl x:Name="GameLog" ItemsSource="{Binding}" DisplayMemberPath="Name" />
             <!--<StackPanel x:Name="GameLog" HorizontalAlignment="Left" VerticalAlignment="Top">
                 <TextBlock TextWrapping="Wrap" Margin="0,0,0,20"><Run Text="Scrolling is enabled when it is necessary. Resize the window, making it larger and smaller."/></TextBlock>
             </StackPanel>-->
