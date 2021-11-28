@@ -27,11 +27,13 @@ public class MulliganSystem
 
   public IEnumerable<GameEvent> DeclareMulligans()
   {
-    foreach (var @event in KeepOrMull())
-      yield return @event;
+    foreach (var k in KeepOrMull())
+    {
+      yield return k;
 
-    foreach (var @event in PutCardsBack())
-      yield return @event;
+      foreach (var p in PutCardsBack())
+        yield return p;
+    }
   }
 
   public IEnumerable<GameEvent> KeepOrMull()
