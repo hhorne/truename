@@ -1,5 +1,3 @@
-using truename.Systems;
-
 namespace truename.Effects.Predefined;
 
 public class SkipFirstDraw : ReplacementEffect
@@ -12,7 +10,7 @@ public class SkipFirstDraw : ReplacementEffect
 
   public SkipFirstDraw() : base((game, @event) =>
     {
-      if (@event.Type == TurnSystem.Draw)
+      if (@event.Type == Turn.Draw)
       {
         var firstPlayer = game.TurnOrder.First();
         var playerId = @event.PlayerId;

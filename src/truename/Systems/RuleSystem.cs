@@ -21,25 +21,60 @@ public class RuleSystem
     turnSystem = new TurnSystem(game);
     TurnBasedActions = new()
     {
-      [TurnSystem.Untap] = new[]
+      [Turn.Untap] = new[]
       {
         (GameEvent @event) => new GameEvent(" - Phasing"),
         (GameEvent @event) => new GameEvent(" - Day/Night"),
         (GameEvent @event) => new GameEvent(" - Untap Permanents"),
       },
-      [TurnSystem.Draw] = new[]
+      [Turn.Upkeep] = new[]
+      {
+        (GameEvent @event) => PriorityGoesTo(@event.PlayerId)
+      },
+      [Turn.Draw] = new[]
       {
         (GameEvent @event) => DrawFromLibrary(game.ActivePlayerId),
-      }
+        (GameEvent @event) => PriorityGoesTo(game.ActivePlayerId)
+      },
+      [Turn.PreCombatMain] = new[]
+      {
+        (GameEvent @event) => PriorityGoesTo(game.ActivePlayerId),
+      },
+      [Turn.BeginCombat] = new[]
+      {
+        (GameEvent @event) => PriorityGoesTo(game.ActivePlayerId),
+      },
+      [Turn.DeclareAttackers] = new[]
+      {
+        (GameEvent @event) => PriorityGoesTo(game.ActivePlayerId),
+      },
+      [Turn.DeclareBlockers] = new[]
+      {
+        (GameEvent @event) => PriorityGoesTo(game.ActivePlayerId),
+      },
+      [Turn.CombatDamage] = new[]
+      {
+        (GameEvent @event) => PriorityGoesTo(game.ActivePlayerId),
+      },
+      [Turn.EndCombat] = new[]
+      {
+        (GameEvent @event) => PriorityGoesTo(game.ActivePlayerId),
+      },
+      [Turn.PostCombatMain] = new[]
+      {
+        (GameEvent @event) => PriorityGoesTo(game.ActivePlayerId),
+      },
+      [Turn.EndStep] = new[]
+      {
+        (GameEvent @event) => PriorityGoesTo(game.ActivePlayerId),
+      },
     };
   }
 
   public IEnumerable<GameEvent> PlayGame()
   {
     foreach (var @event in GameLoop())
-    {
       yield return LoggedEvent(@event);
-    }
   }
 
   public GameEvent LoggedEvent(GameEvent @event) => game.Log(@event);
@@ -163,5 +198,11 @@ public class RuleSystem
       game.ContinuousEffects.Remove(replacement);
 
     return replacement?.Event(game, @event);
+  }
+
+  public GameEvent PriorityGoesTo(string playerId)
+  {
+    game.GivePriorityTo(playerId);
+    return new GameEvent($"{game.ActivePlayer.Name} gains priority");
   }
 }

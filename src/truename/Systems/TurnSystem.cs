@@ -2,27 +2,6 @@ namespace truename.Systems;
 
 public class TurnSystem
 {
-  private static readonly string BaseEventKey = "Turn/Step/";
-  public static readonly string Untap = $"{BaseEventKey}{nameof(Untap)}";
-  public static readonly string Upkeep = $"{BaseEventKey}{nameof(Upkeep)}";
-  public static readonly string Draw = $"{BaseEventKey}{nameof(Draw)}";
-  public static readonly string PreCombatMain = $"{BaseEventKey}{nameof(PreCombatMain)}";
-  public static readonly string BeginCombat = $"{BaseEventKey}{nameof(BeginCombat)}";
-  public static readonly string DeclareAttackers = $"{BaseEventKey}{nameof(DeclareAttackers)}";
-  public static readonly string DeclareBlockers = $"{BaseEventKey}{nameof(DeclareBlockers)}";
-  public static readonly string CombatDamage = $"{BaseEventKey}{nameof(CombatDamage)}";
-  public static readonly string EndCombat = $"{BaseEventKey}{nameof(EndCombat)}";
-  public static readonly string PostCombatMain = $"{BaseEventKey}{nameof(PostCombatMain)}";
-  public static readonly string EndStep = $"{BaseEventKey}{nameof(EndStep)}";
-  public static readonly string Cleanup = $"{BaseEventKey}{nameof(Cleanup)}";
-
-  public static readonly string[] BeginningPhase = new[]
-  {
-    Untap,
-    Upkeep,
-    Draw
-  };
-
   private readonly Game game;
 
   public TurnSystem(Game game)
@@ -49,7 +28,7 @@ public class TurnSystem
     {
       PlayerId = playerId,
       Name = $"{playerName}'s Untap Step",
-      Type = Untap,
+      Type = Turn.Untap,
     };
 
     // - Upkeep
@@ -57,7 +36,7 @@ public class TurnSystem
     {
       PlayerId = playerId,
       Name = $"{playerName}'s Upkeep",
-      Type = Upkeep,
+      Type = Turn.Upkeep,
     };
 
     // - Draw
@@ -65,7 +44,7 @@ public class TurnSystem
     {
       PlayerId = playerId,
       Name = $"{playerName}'s Draw Step",
-      Type = Draw,
+      Type = Turn.Draw,
     };
 
     yield return new GameEvent
@@ -73,7 +52,7 @@ public class TurnSystem
       PlayerId = playerId,
       Name = $"{playerName}'s Pre-Combat Main Phase",
       Description = "[white italic] - Play lands and cast spells[/]",
-      Type = PreCombatMain,
+      Type = Turn.PreCombatMain,
     };
 
     var turnOrder = game.TurnOrder;
