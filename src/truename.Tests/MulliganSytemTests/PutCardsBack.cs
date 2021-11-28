@@ -1,5 +1,4 @@
 using System.Linq;
-using truename.Systems;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -18,11 +17,20 @@ public class PutCardsBack : MulliganSystemTest
     var otherPlayerId = game.TurnOrder.After(playerId);
     // this player is done deciding AND putting cards back
     // they should not get any events
-    mulliganSystem.Decisions[playerId].Keep = true;
-    mulliganSystem.Decisions[playerId].Done = true;
+    mulliganSystem.Decisions[playerId] = new MulliganDecision
+    {
+      Done = true,
+      Keep = true,
+      Taken = 0,
+    };
     // this player has decided to keep but has not yet put
     // back their cards, they SHOULD get events
-    mulliganSystem.Decisions[otherPlayerId].Keep = true;
+    mulliganSystem.Decisions[otherPlayerId] = new MulliganDecision
+    {
+      Keep = true,
+      Taken = 1,
+    };
+
 
     var playerIds = mulliganSystem
       .PutCardsBack()

@@ -60,7 +60,6 @@ public class MulliganSystem
     var players = Decisions
       .Where(d =>
         d.Value.Keep &&
-        d.Value.Taken > 0 &&
         !d.Value.Done)
       .ToDictionary(d => d.Key, d => d.Value);
 
