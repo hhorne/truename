@@ -1,29 +1,28 @@
 namespace truename.Systems;
 
-public class HandSystem
+public class HandSystem : System
 {
-  private readonly Game game;
-
-  public HandSystem(Game game)
+  public HandSystem(Game game) : base(game)
   {
-    this.game = game;
   }
 
-  public void Draw(string playerId, IEnumerable<Card> cards)
+  public GameEvent Draw(string playerId, IEnumerable<Card> cards)
   {
     var handId = (Zones.Hand, playerId);
     var hand = game.Zones[handId].Concat(cards);
     game.UpdateZone(handId, hand);
+
+    return new GameEvent($"{GetPlayerName(playerId)} drew {cards.First()}");
   }
 
-  public IEnumerable<Card> Take(string playerId, IEnumerable<Card> cards)
+  public GameEvent Take(string playerId, IEnumerable<Card> toTake, out IEnumerable<Card> result)
   {
     var handId = (Zones.Hand, playerId);
-    var cardsTaken = game.Zones[handId].Where(cards.Contains);
-    var hand = game.Zones[handId].Except(cards);
+    var hand = game.Zones[handId].Except(toTake);
+    result = game.Zones[handId].Where(toTake.Contains);
     game.UpdateZone(handId, hand);
 
-    return cardsTaken;
+    return new GameEvent($"Taking cards from {GetPlayerName(playerId)}'s Hand");
   }
 
   public IEnumerable<Card> HandFor(string playerId) =>
