@@ -14,10 +14,10 @@ public partial class Game : AggregateRoot
   public string ActivePlayerId { get; set; } = string.Empty;
   public Player ActivePlayer => Players[ActivePlayerId];
   public string PriorityHolderId { get; set; } = string.Empty;
-  public Dictionary<(ZoneKeys, string), IEnumerable<Card>> Zones { get; set; } = new();
+  public Dictionary<(ZoneKeys, string), List<Card>> Zones { get; set; } = new();
   public List<GameEvent> EventLog { get; set; } = new();
   public Dictionary<string, int> Turns { get; set; } = new();
-  public string TurnStep { get; set; }
+  public string TurnStep { get; set; } = string.Empty;
   public List<ContinuousEffect> ContinuousEffects { get; set; } = new();
 
   public Game() { }
@@ -46,17 +46,17 @@ public partial class Game : AggregateRoot
 
     Zones = new()
     {
-      [(ZoneKeys.Battlefield, string.Empty)] = Enumerable.Empty<Card>(),
-      [(ZoneKeys.Stack, string.Empty)] = new Queue<Card>(),
-      [(ZoneKeys.Exile, string.Empty)] = Enumerable.Empty<Card>()
+      [(ZoneKeys.Battlefield, string.Empty)] = new(),
+      [(ZoneKeys.Stack, string.Empty)] = new(),
+      [(ZoneKeys.Exile, string.Empty)] = new()
     };
 
     Players.ForEach(p =>
     {
       var player = Players[p.Key];
-      Zones[(ZoneKeys.Graveyard, p.Key)] = Enumerable.Empty<Card>();
-      Zones[(ZoneKeys.Hand, p.Key)] = Enumerable.Empty<Card>();
-      Zones[(ZoneKeys.Library, p.Key)] = new List<Card>(player.DeckList);
+      Zones[(ZoneKeys.Graveyard, p.Key)] = new();
+      Zones[(ZoneKeys.Hand, p.Key)] = new();
+      Zones[(ZoneKeys.Library, p.Key)] = new(player.DeckList);
     });
   }
 
@@ -83,7 +83,7 @@ public partial class Game : AggregateRoot
 
   public void Apply(UpdateZone @event)
   {
-    Zones[@event.ZoneId] = @event.Cards;
+    Zones[@event.ZoneId] = new(@event.Cards);
   }
 
   public void UpdateActivePlayer(string playerId)

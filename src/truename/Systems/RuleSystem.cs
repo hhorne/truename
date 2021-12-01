@@ -3,6 +3,8 @@ using truename.Effects.Predefined;
 
 namespace truename.Systems;
 
+delegate GameEvent TurnBasedAction(Game game);
+
 public class RuleSystem
 {
   private readonly Game game;
@@ -11,7 +13,60 @@ public class RuleSystem
   private readonly MulliganSystem mulliganSystem;
   private readonly TimingSystem timingSystem;
   private readonly TurnSystem turnSystem;
-  private readonly Dictionary<string, IEnumerable<Func<GameEvent, IEnumerable<GameEvent>>>> TurnBasedActions = new();
+  // private readonly Dictionary<string, IEnumerable<Func<GameEvent, IEnumerable<GameEvent>>>> TurnBasedActions = new();
+  private readonly Dictionary<string, IEnumerable<TurnBasedAction>> TurnBasedActions = new()
+  {
+    [Turn.Steps.Untap] = new TurnBasedAction[]
+    {
+      g => new GameEvent("502.1. Phasing"),
+      g => new GameEvent("502.2. Day/Night"),
+      g => new GameEvent("502.3. Untap Permanents"),
+    },
+    [Turn.Steps.Draw] = new TurnBasedAction[]
+    {
+      g =>
+      {
+        var activePlayer = g.ActivePlayer;
+        var library = g.Zones[(Zones.Library, activePlayer.Id)];
+        var card = library.TakeLast(1);
+        var hand = g.Zones[(Zones.Hand, activePlayer.Id)];
+        g.UpdateZone((Zones.Library, activePlayer.Id), hand.Concat(card));
+        return new GameEvent("504.1 First, the active player draws a card.");
+      }
+    },
+    [Turn.Phases.PreCombatMain] = new TurnBasedAction[]
+    {
+      g => new GameEvent("505.4. Sagas"),
+    },
+    [Turn.Steps.DeclareAttackers] = new TurnBasedAction[]
+    {
+      g => new GameEvent("508.1. First, the active player declares attackers."),
+    },
+    [Turn.Steps.DeclareBlockers] = new TurnBasedAction[]
+    {
+      g => new GameEvent("509.1. First, the defending player declares blockers."),
+    },
+    [Turn.Steps.CombatDamage] = new TurnBasedAction[]
+    {
+      g => new GameEvent("510.1. First, the active player announces how each attacking creature assigns its combat damage"),
+    },
+    [Turn.Steps.Cleanup] = new TurnBasedAction[]
+    {
+      g =>
+      {
+        var activePlayer = g.ActivePlayer;
+        var hand = g.Zones[(Zones.Hand, activePlayer.Id)];
+        if (hand.Count() <= 7)
+          return new GameEvent("514.1. If active player’s hand contains more cards than their maximum hand size (normally seven), they discard enough cards to reduce their hand size to that number.");
+        var toDiscard = new List<Card>();
+
+        // convert to decision, turn to look like mulligan, add confirmation
+        return new GameEvent("514.1 If active player’s hand contains more cards than their maximum hand size (normally seven), they discard enough cards to reduce their hand size to that number.");
+      },
+      g => new GameEvent("514.2. Damage marked on permanents is removed, all \"until end of turn\" and \"this turn\" effects end."),
+      g => new GameEvent("514.3. Normally, no player receives priority during the cleanup step, so no spells can be cast and no abilities can be activated. However, this rule is subject to the following exception: "),
+    },
+  };
 
   public RuleSystem(Game game)
   {
@@ -21,42 +76,6 @@ public class RuleSystem
     mulliganSystem = new MulliganSystem(game);
     timingSystem = new TimingSystem(game);
     turnSystem = new TurnSystem(game);
-
-    TurnBasedActions = new()
-    {
-      [Turn.Steps.Untap] = new[]
-      {
-        (GameEvent @event) => Phasing(),
-        (GameEvent @event) => DayNight(),
-        (GameEvent @event) => UntapPermanents(),
-      },
-      [Turn.Steps.Draw] = new[]
-      {
-        (GameEvent @event) => DrawFromLibrary(game.ActivePlayerId),
-      },
-      [Turn.Phases.PreCombatMain] = new[]
-      {
-        (GameEvent @event) => Sagas(),
-      },
-      [Turn.Steps.DeclareAttackers] = new[]
-      {
-        (GameEvent @event) => DeclareAttackers(),
-      },
-      [Turn.Steps.DeclareBlockers] = new[]
-      {
-        (GameEvent @event) => DeclareBlockers(),
-      },
-      [Turn.Steps.CombatDamage] = new[]
-      {
-        (GameEvent @event) => CombatDamage(),
-      },
-      [Turn.Steps.Cleanup] = new[]
-      {
-        (GameEvent @event) => DiscardToHandSize(),
-        (GameEvent @event) => RemoveDamage(),
-        (GameEvent @event) => EndCleanup(),
-      },
-    };
   }
 
   public IEnumerable<GameEvent> PlayGame()
@@ -174,8 +193,7 @@ public class RuleSystem
         if (TurnBasedActions.TryGetValue(result.Type, out var actions))
         {
           foreach (var action in actions)
-            foreach (var subAction in action(result))
-              yield return subAction;
+            yield return action(game);
         }
 
         var priorityExchange = game.TurnStep switch
