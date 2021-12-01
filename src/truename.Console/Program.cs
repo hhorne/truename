@@ -9,24 +9,21 @@ var players = new[]
   new Player("typedef", TestData.ReanimatorDeck),
 };
 
-var gameNum = 1;
-var match = new Game(gameNum, players);
+var match = new Game(players);
 var ruleSystem = new RuleSystem(match);
-var game = ruleSystem.PlayGame();
 
-foreach (var @event in game)
+foreach (var @event in ruleSystem.PlayGame())
 {
-  var decision = @event as Decision;
-  if (decision == null)
-  {
-    AnsiConsole.MarkupLine(@event.Name);
-    if (!string.IsNullOrEmpty(@event.Description))
-      AnsiConsole.MarkupLine(@event.Description);
-  }
-  else
+  if (@event is Decision decision)
   {
     AnsiConsole
       .Prompt(decision.ToPrompt())
       .Action();
+  }
+  else
+  {
+    AnsiConsole.MarkupLine(@event.Name);
+    if (!string.IsNullOrEmpty(@event.Description))
+      AnsiConsole.MarkupLine(@event.Description);
   }
 }
