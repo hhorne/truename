@@ -39,7 +39,7 @@ public class MulliganSystem
   public IEnumerable<GameEvent> KeepOrMull()
   {
     var choices = StillDeciding
-      .Select(pId => new GameEvent
+      .Select(pId => new Decision
       {
         PlayerId = pId,
         Name = $"{game.GetPlayerName(pId)}: Keep or Mulligan?",
@@ -72,7 +72,7 @@ public class MulliganSystem
       for (int i = 0; i < decision.Taken; i++)
       {
         var remaining = decision.Taken - decision.PutBack.Count;
-        yield return new GameEvent
+        yield return new Decision
         {
           PlayerId = playerId,
           Name = $"{playerName}: Pick a card to put back",

@@ -89,7 +89,7 @@ public class RuleSystem
 
     var winnerId = turnOrder.First();
     var player = game.Players[winnerId];
-    yield return new GameEvent
+    yield return new Decision
     {
       Name = $"{player.Name} won the die roll",
       Description = "Go First?",

@@ -4,7 +4,7 @@ namespace truename;
 
 public static class GameEventHelpers
 {
-  public static SelectionPrompt<GameAction> ToPrompt(this GameEvent @event)
+  public static SelectionPrompt<GameAction> ToPrompt(this Decision @event)
   {
     var title = $"[red]{@event.Name}[/]";
     if (!string.IsNullOrWhiteSpace(@event.Description))

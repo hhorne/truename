@@ -1,5 +1,4 @@
-using truename;
-
+// Something happened and we need to notify the game and/or players
 public class GameEvent
 {
   public Guid Id { get; set; }
@@ -7,7 +6,6 @@ public class GameEvent
   public string Name { get; set; } = string.Empty;
   public string Description { get; set; } = string.Empty;
   public string Type { get; set; } = string.Empty;
-  public GameAction[] Choices { get; set; } = Array.Empty<GameAction>();
 
   public override string ToString() => Name;
 

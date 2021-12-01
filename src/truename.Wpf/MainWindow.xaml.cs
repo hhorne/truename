@@ -36,8 +36,12 @@ namespace truename.Wpf
 
       foreach (var @event in game)
       {
-        if (@event.Choices.Any())
-          @event.Choices.First().Action();
+        if (@event is Decision)
+        {
+          var choice = (Decision)@event;
+          choice.Choices.First().Action();
+        }
+
         gameEvents.Add(@event);
       }
     }

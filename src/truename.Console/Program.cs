@@ -16,7 +16,8 @@ var game = ruleSystem.PlayGame();
 
 foreach (var @event in game)
 {
-  if (@event.Choices.Length <= 1)
+  var decision = @event as Decision;
+  if (decision == null)
   {
     AnsiConsole.MarkupLine(@event.Name);
     if (!string.IsNullOrEmpty(@event.Description))
@@ -25,7 +26,7 @@ foreach (var @event in game)
   else
   {
     AnsiConsole
-      .Prompt(@event.ToPrompt())
+      .Prompt(decision.ToPrompt())
       .Action();
   }
 }

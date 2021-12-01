@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using truename.Systems;
 using Xunit;
@@ -15,11 +16,14 @@ public class KeepOrMull : MulliganSystemTest
   [Fact]
   public void Choices_are_Keep_and_Mulligan()
   {
-    var choices = mulliganSystem
+    var @event = mulliganSystem
       .KeepOrMull()
-      .First()
-      .Choices;
+      .First();
 
+    var decision = @event as Decision;
+    var choices = decision?.Choices ?? Array.Empty<GameAction>();
+
+    Assert.NotNull(decision);
     Assert.NotNull(choices);
     Assert.Equal(2, choices.Length);
     Assert.Equal("Keep", choices.First().Name);
@@ -29,32 +33,40 @@ public class KeepOrMull : MulliganSystemTest
   [Fact]
   public void Keep_updates_decision()
   {
-    var keep = mulliganSystem
+    var @event = mulliganSystem
       .KeepOrMull()
-      .First()
+      .First();
+
+    var mullDecision = @event as Decision;
+    var keep = mullDecision?
       .Choices
       .First();
 
     var player = game.ActivePlayerId;
-    keep.Action();
+    keep?.Action();
 
-    Assert.Equal("Keep", keep.Name);
+    Assert.NotNull(keep);
+    Assert.Equal("Keep", keep?.Name);
     Assert.True(mulliganSystem.Decisions[player].Keep);
   }
 
   [Fact]
   public void Mulligan_updates_decision()
   {
-    var keep = mulliganSystem
+    var @event = mulliganSystem
       .KeepOrMull()
-      .First()
+      .First();
+
+    var mullDecision = @event as Decision;
+    var mull = mullDecision?
       .Choices
-      .Last();
+      .First();
 
     var player = game.ActivePlayerId;
-    keep.Action();
+    mull?.Action();
 
-    Assert.Equal("Mulligan", keep.Name);
+    Assert.NotNull(mull);
+    Assert.Equal("Mulligan", mull?.Name);
     Assert.Equal(1, mulliganSystem.Decisions[player].Taken);
   }
 
