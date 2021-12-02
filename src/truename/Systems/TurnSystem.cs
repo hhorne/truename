@@ -9,7 +9,7 @@ public class TurnSystem
     this.game = game;
   }
 
-  public IEnumerable<GameEvent> TakeTurn()
+  public IEnumerable<EventDescription> TakeTurn()
   {
     var activePlayer = game.ActivePlayer;
 
@@ -35,34 +35,34 @@ public class TurnSystem
     game.UpdateActivePlayer(nextActivePlayerId);
   }
 
-  public IEnumerable<GameEvent> Beginning()
+  public IEnumerable<EventDescription> Beginning()
   {
     var activePlayer = game.ActivePlayer;
     var playerId = activePlayer.Id;
     var playerName = activePlayer.Name;
 
-    yield return new GameEvent
+    yield return new EventDescription
     {
       PlayerId = playerId,
       Name = $"{playerName}'s Beginning Phase",
       Type = Turn.Phases.Beginning,
     };
 
-    yield return new GameEvent
+    yield return new EventDescription
     {
       PlayerId = playerId,
       Name = $"{playerName}'s Untap Step",
       Type = Turn.Steps.Untap,
     };
 
-    yield return new GameEvent
+    yield return new EventDescription
     {
       PlayerId = playerId,
       Name = $"{playerName}'s Upkeep",
       Type = Turn.Steps.Upkeep,
     };
 
-    yield return new GameEvent
+    yield return new EventDescription
     {
       PlayerId = playerId,
       Name = $"{playerName}'s Draw Step",
@@ -70,13 +70,13 @@ public class TurnSystem
     };
   }
 
-  public IEnumerable<GameEvent> PreCombatMain()
+  public IEnumerable<EventDescription> PreCombatMain()
   {
     var activePlayer = game.ActivePlayer;
     var playerId = activePlayer.Id;
     var playerName = activePlayer.Name;
 
-    yield return new GameEvent
+    yield return new EventDescription
     {
       PlayerId = playerId,
       Name = $"{playerName}'s Pre-Combat Main Phase",
@@ -85,48 +85,48 @@ public class TurnSystem
     };
   }
 
-  public IEnumerable<GameEvent> Combat()
+  public IEnumerable<EventDescription> Combat()
   {
     var activePlayer = game.ActivePlayer;
     var playerId = activePlayer.Id;
     var playerName = activePlayer.Name;
 
-    yield return new GameEvent
+    yield return new EventDescription
     {
       PlayerId = playerId,
       Name = $"{playerName}'s Combat Phase",
       Type = Turn.Phases.Combat,
     };
 
-    yield return new GameEvent
+    yield return new EventDescription
     {
       PlayerId = playerId,
       Name = $"{playerName}: Beginning of Combat",
       Type = Turn.Steps.BeginCombat,
     };
 
-    yield return new GameEvent
+    yield return new EventDescription
     {
       PlayerId = playerId,
       Name = $"{playerName}: Declare Attackers",
       Type = Turn.Steps.DeclareAttackers,
     };
 
-    yield return new GameEvent
+    yield return new EventDescription
     {
       PlayerId = playerId,
       Name = $"{playerName}: Declare Blockers",
       Type = Turn.Steps.DeclareBlockers,
     };
 
-    yield return new GameEvent
+    yield return new EventDescription
     {
       PlayerId = playerId,
       Name = $"{playerName}: Combat Damage",
       Type = Turn.Steps.CombatDamage,
     };
 
-    yield return new GameEvent
+    yield return new EventDescription
     {
       PlayerId = playerId,
       Name = $"{playerName}'s End of Combat",
@@ -134,13 +134,13 @@ public class TurnSystem
     };
   }
   
-  public IEnumerable<GameEvent> PostCombatMain()
+  public IEnumerable<EventDescription> PostCombatMain()
   {
     var activePlayer = game.ActivePlayer;
     var playerId = activePlayer.Id;
     var playerName = activePlayer.Name;
 
-    yield return new GameEvent
+    yield return new EventDescription
     {
       PlayerId = playerId,
       Name = $"{playerName}'s Post-Combat Main Phase",
@@ -149,27 +149,27 @@ public class TurnSystem
     };
   }
 
-  public IEnumerable<GameEvent> Ending()
+  public IEnumerable<EventDescription> Ending()
   {
     var activePlayer = game.ActivePlayer;
     var playerId = activePlayer.Id;
     var playerName = activePlayer.Name;
 
-    yield return new GameEvent
+    yield return new EventDescription
     {
       PlayerId = playerId,
       Name = $"{playerName}'s Ending Phase",
       Type = Turn.Phases.Ending,
     };
 
-    yield return new GameEvent
+    yield return new EventDescription
     {
       PlayerId = playerId,
       Name = $"{playerName}'s End Step",
       Type = Turn.Steps.EndStep,
     };
 
-    yield return new GameEvent
+    yield return new EventDescription
     {
       PlayerId = playerId,
       Name = $"{playerName}'s Cleanup Step",

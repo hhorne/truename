@@ -1,3 +1,3 @@
 namespace truename.Events;
 
-public record LogGameEvent(GameEvent GameEvent);
+public record LogGameEvent(EventDescription GameEvent);

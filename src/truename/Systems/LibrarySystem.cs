@@ -8,7 +8,7 @@ public class LibrarySystem : System
   {
   }
 
-  public GameEvent Shuffle(string playerId)
+  public void Shuffle(string playerId)
   {
     var libraryId = libraryFor(playerId);
     var library = game
@@ -18,34 +18,23 @@ public class LibrarySystem : System
       .ToList();
 
     game.UpdateZone(libraryId, library);
-    return new GameEvent($"[bold darkslategray3]{game.GetPlayerName(playerId)}[/] [bold gold3_1]Shuffles[/] their [bold mediumorchid1]Library[/]");
   }
 
-  public GameEvent TakeTop(string playerId, out IEnumerable<Card> cards, int count = 1)
+  public IEnumerable<Card> TakeTop(string playerId, int count = 1)
   {
     var libraryId = libraryFor(playerId);
     var library = game.Zones[libraryId];
-    cards = library.TakeLast(1);
+    var cards = library.TakeLast(1);
     game.UpdateZone(libraryId, library.Except(cards));
-    return new GameEvent
-    {
-      Name = $"Taking top {count} cards from {GetPlayerName(playerId)}'s Library",
-      Description = string.Join(
-        Environment.NewLine,
-        cards.Select(c => $" - {c}")
-      ),
-    };
+    return cards;
   }
 
-  public GameEvent PutOnBottom(string playerId, IEnumerable<Card> cards)
+  public void PutOnBottom(string playerId, IEnumerable<Card> cards)
   {
     var libraryId = libraryFor(playerId);
-
     game.UpdateZone(
-      libraryId,
+      libraryFor(playerId),
       cards.Concat(game.Zones[libraryId])
     );
-
-    return new GameEvent($"[bold darkslategray3]{game.GetPlayerName(playerId)}[/] puts [bold gold3_1]Hand[/] on the bottom of their [bold mediumorchid1]Library[/]");
   }
 }

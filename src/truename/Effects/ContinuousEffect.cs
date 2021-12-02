@@ -1,11 +1,11 @@
 namespace truename.Effects;
 
-public delegate bool GameCondition(Game game, GameEvent @event);
+public delegate bool GameCondition(Game game, EventDescription @event);
 
 public class ContinuousEffect
 {
   GameCondition isExpired = (game, @event) => false;
-  public bool IsExpired(Game game, GameEvent @event) => isExpired(game, @event);
+  public bool IsExpired(Game game, EventDescription @event) => isExpired(game, @event);
 
   public ContinuousEffect(GameCondition expires)
   {

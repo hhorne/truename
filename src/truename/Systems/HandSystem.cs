@@ -6,23 +6,18 @@ public class HandSystem : System
   {
   }
 
-  public GameEvent Draw(string playerId, IEnumerable<Card> cards)
+  public void Draw(string playerId, IEnumerable<Card> cards)
   {
     var handId = (Zones.Hand, playerId);
     var hand = game.Zones[handId].Concat(cards);
     game.UpdateZone(handId, hand);
-
-    return new GameEvent($"{GetPlayerName(playerId)} drew {cards.First()}");
   }
 
-  public GameEvent Take(string playerId, IEnumerable<Card> toTake, out IEnumerable<Card> result)
+  public void Remove(string playerId, IEnumerable<Card> cards)
   {
     var handId = (Zones.Hand, playerId);
-    var hand = game.Zones[handId].Except(toTake);
-    result = game.Zones[handId].Where(toTake.Contains);
+    var hand = game.Zones[handId].Except(cards);
     game.UpdateZone(handId, hand);
-
-    return new GameEvent($"Taking cards from {GetPlayerName(playerId)}'s Hand");
   }
 
   public IEnumerable<Card> HandFor(string playerId) =>

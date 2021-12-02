@@ -15,7 +15,7 @@ public partial class Game : AggregateRoot
   public Player ActivePlayer => Players[ActivePlayerId];
   public string PriorityHolderId { get; set; } = string.Empty;
   public Dictionary<(ZoneKeys, string), List<Card>> Zones { get; set; } = new();
-  public List<GameEvent> EventLog { get; set; } = new();
+  public List<EventDescription> EventLog { get; set; } = new();
   public Dictionary<string, int> Turns { get; set; } = new();
   public string TurnStep { get; set; } = string.Empty;
   public List<ContinuousEffect> ContinuousEffects { get; set; } = new();
@@ -123,7 +123,7 @@ public partial class Game : AggregateRoot
     TurnStep = @event.TurnStep;
   }
 
-  public GameEvent Log(GameEvent gameEvent)
+  public EventDescription Log(EventDescription gameEvent)
   {
     var @event = new LogGameEvent(gameEvent);
     Apply(@event);

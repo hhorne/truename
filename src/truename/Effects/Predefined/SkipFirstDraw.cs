@@ -3,7 +3,7 @@ namespace truename.Effects.Predefined;
 public class SkipFirstDraw : ReplacementEffect
 {
   static EventConverter drawToSkip = (g, e) =>
-    new GameEvent
+    new EventDescription
     {
       Name = $"Skipping {e.Name}",
       Type = $"Skip/{e.Type}",

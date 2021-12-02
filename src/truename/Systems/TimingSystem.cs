@@ -10,11 +10,11 @@ public class TimingSystem
     this.game = game;
   }
 
-  public IEnumerable<GameEvent> ExchangePriority()
+  public IEnumerable<EventDescription> ExchangePriority()
   {
     var priorityHolder = game.PriorityHolderId;
     var turnStep = game.TurnStep;
     var stack = game.Zones[(Zones.Stack, string.Empty)];
-    return Enumerable.Empty<GameEvent>();
+    return Enumerable.Empty<EventDescription>();
   }
 }

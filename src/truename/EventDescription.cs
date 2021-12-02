@@ -1,5 +1,5 @@
 // Something happened and we need to notify the game and/or players
-public class GameEvent
+public class EventDescription
 {
   public Guid Id { get; set; }
   public string PlayerId { get; set; } = string.Empty;
@@ -9,14 +9,14 @@ public class GameEvent
 
   public override string ToString() => Name;
 
-  public GameEvent() { }
+  public EventDescription() { }
 
-  public GameEvent(string message)
+  public EventDescription(string message)
   {
     Name = message;
   }
 
-  public GameEvent(string message, string description)
+  public EventDescription(string message, string description)
   {
     Name = message;
     Description = description;

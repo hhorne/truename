@@ -3,7 +3,8 @@ using truename.Effects.Predefined;
 
 namespace truename.Systems;
 
-delegate GameEvent TurnBasedAction(Game game);
+delegate EventDescription TurnBasedAction(Game game);
+delegate IEnumerable<EventDescription> GameEvent(Game game);
 
 public class RuleSystem
 {
@@ -13,60 +14,7 @@ public class RuleSystem
   private readonly MulliganSystem mulliganSystem;
   private readonly TimingSystem timingSystem;
   private readonly TurnSystem turnSystem;
-  // private readonly Dictionary<string, IEnumerable<Func<GameEvent, IEnumerable<GameEvent>>>> TurnBasedActions = new();
-  private readonly Dictionary<string, IEnumerable<TurnBasedAction>> TurnBasedActions = new()
-  {
-    [Turn.Steps.Untap] = new TurnBasedAction[]
-    {
-      g => new GameEvent("502.1. Phasing"),
-      g => new GameEvent("502.2. Day/Night"),
-      g => new GameEvent("502.3. Untap Permanents"),
-    },
-    [Turn.Steps.Draw] = new TurnBasedAction[]
-    {
-      g =>
-      {
-        var activePlayer = g.ActivePlayer;
-        var library = g.Zones[(Zones.Library, activePlayer.Id)];
-        var card = library.TakeLast(1);
-        var hand = g.Zones[(Zones.Hand, activePlayer.Id)];
-        g.UpdateZone((Zones.Library, activePlayer.Id), hand.Concat(card));
-        return new GameEvent("504.1 First, the active player draws a card.");
-      }
-    },
-    [Turn.Phases.PreCombatMain] = new TurnBasedAction[]
-    {
-      g => new GameEvent("505.4. Sagas"),
-    },
-    [Turn.Steps.DeclareAttackers] = new TurnBasedAction[]
-    {
-      g => new GameEvent("508.1. First, the active player declares attackers."),
-    },
-    [Turn.Steps.DeclareBlockers] = new TurnBasedAction[]
-    {
-      g => new GameEvent("509.1. First, the defending player declares blockers."),
-    },
-    [Turn.Steps.CombatDamage] = new TurnBasedAction[]
-    {
-      g => new GameEvent("510.1. First, the active player announces how each attacking creature assigns its combat damage"),
-    },
-    [Turn.Steps.Cleanup] = new TurnBasedAction[]
-    {
-      g =>
-      {
-        var activePlayer = g.ActivePlayer;
-        var hand = g.Zones[(Zones.Hand, activePlayer.Id)];
-        if (hand.Count() <= 7)
-          return new GameEvent("514.1. If active player’s hand contains more cards than their maximum hand size (normally seven), they discard enough cards to reduce their hand size to that number.");
-        var toDiscard = new List<Card>();
-
-        // convert to decision, turn to look like mulligan, add confirmation
-        return new GameEvent("514.1 If active player’s hand contains more cards than their maximum hand size (normally seven), they discard enough cards to reduce their hand size to that number.");
-      },
-      g => new GameEvent("514.2. Damage marked on permanents is removed, all \"until end of turn\" and \"this turn\" effects end."),
-      g => new GameEvent("514.3. Normally, no player receives priority during the cleanup step, so no spells can be cast and no abilities can be activated. However, this rule is subject to the following exception: "),
-    },
-  };
+  private readonly Dictionary<string, IEnumerable<GameEvent>> TurnBasedActions = new();
 
   public RuleSystem(Game game)
   {
@@ -76,29 +24,70 @@ public class RuleSystem
     mulliganSystem = new MulliganSystem(game);
     timingSystem = new TimingSystem(game);
     turnSystem = new TurnSystem(game);
+
+    TurnBasedActions = new()
+    {
+      [Turn.Steps.Untap] = new GameEvent[]
+      {
+        g => Phasing(),
+        g => DayNight(),
+        g => UntapPermanents(),
+      },
+      [Turn.Steps.Draw] = new GameEvent[]
+      {
+        g => new [] { DrawFromLibrary(g.ActivePlayerId) },
+      },
+      [Turn.Phases.PreCombatMain] = new GameEvent[]
+      {
+        g => Sagas(),
+      },
+      [Turn.Steps.DeclareAttackers] = new GameEvent[]
+      {
+        g => DeclareAttackers(),
+      },
+      [Turn.Steps.DeclareBlockers] = new GameEvent[]
+      {
+        g => DeclareBlockers(),
+      },
+      [Turn.Steps.CombatDamage] = new GameEvent[]
+      {
+        g => CombatDamage(),
+      },
+      [Turn.Steps.Cleanup] = new GameEvent[]
+      {
+        g => DiscardToHandSize(),
+        g => RemoveDamage(),
+        g => EndCleanup(),
+      },
+    };
   }
 
-  public IEnumerable<GameEvent> PlayGame()
+  public IEnumerable<EventDescription> PlayGame()
   {
     foreach (var @event in GameLoop())
       yield return LoggedEvent(@event);
   }
 
-  public GameEvent LoggedEvent(GameEvent @event) => game.Log(@event);
+  public EventDescription LoggedEvent(EventDescription @event) => game.Log(@event);
 
-  public IEnumerable<GameEvent> GameLoop()
+  public IEnumerable<EventDescription> GameLoop()
   {
-    foreach (var @event in DetermineTurnOrder())
-      yield return @event;
+    yield return DetermineTurnOrder();
+
+    var playerName = game.ActivePlayer.Name;
+    yield return new EventDescription($"{playerName} on the play");
 
     foreach (var @event in DrawOpeningHands())
       yield return @event;
 
     foreach (var @event in TakeTurns())
+    {
       yield return @event;
+      // exchange priority
+    }
   }
 
-  IEnumerable<GameEvent> DetermineTurnOrder()
+  EventDescription DetermineTurnOrder()
   {
     var turnOrder = game
       .Players
@@ -108,7 +97,7 @@ public class RuleSystem
 
     var winnerId = turnOrder.First();
     var player = game.Players[winnerId];
-    yield return new Decision
+    return new Decision
     {
       Name = $"{player.Name} won the die roll",
       Description = "Go First?",
@@ -119,11 +108,9 @@ public class RuleSystem
         new GameAction("Draw", () => game.SetTurnOrder(turnOrder.Reverse())),
       }
     };
-
-    yield return new GameEvent($"{game.ActivePlayer.Name} on the play");
   }
 
-  IEnumerable<GameEvent> DrawOpeningHands()
+  IEnumerable<EventDescription> DrawOpeningHands()
   {
     mulliganSystem.Init();
     do
@@ -134,11 +121,16 @@ public class RuleSystem
         var hand = handSystem.HandFor(playerId);
         if (hand.Any())
         {
-          yield return handSystem.Take(playerId, hand, out var cards);
-          yield return librarySystem.PutOnBottom(playerId, cards);
+          handSystem.Remove(playerId, hand);
+          librarySystem.PutOnBottom(playerId, hand);
         }
 
-        yield return librarySystem.Shuffle(playerId);
+        librarySystem.Shuffle(playerId);
+        var playerName = game.GetPlayerName(playerId);
+        yield return new EventDescription
+        {
+          Name = $"{playerName} puts hand on bottom of Library and Shuffles it away.",
+        };
       }
 
       foreach (var playerId in stillDeciding)
@@ -151,25 +143,25 @@ public class RuleSystem
     while (mulliganSystem.StillDeciding.Any());
   }
 
-  IEnumerable<GameEvent> DrawHand(string playerId)
+  IEnumerable<EventDescription> DrawHand(string playerId)
   {
     const int DefaultHandSize = 7;
     var playerName = game.GetPlayerName(playerId);
-    yield return new GameEvent($"{playerName} draws hand:");
+    yield return new EventDescription($"{playerName} draws hand:");
     for (int i = 0; i < DefaultHandSize; i++)
     {
-      foreach(var @event in DrawFromLibrary(playerId))
-        yield return @event;
+      yield return DrawFromLibrary(playerId);
     }
   }
 
-  IEnumerable<GameEvent> DrawFromLibrary(string playerId)
+  EventDescription DrawFromLibrary(string playerId)
   {
-    yield return librarySystem.TakeTop(playerId, out var cards);
-    yield return handSystem.Draw(playerId, cards);
+    var cards = librarySystem.TakeTop(playerId);
+    handSystem.Draw(playerId, cards);
+    return new EventDescription($"{game.GetPlayerName(playerId)} drew {cards.First()}");
   }
 
-  public IEnumerable<GameEvent> TakeTurns()
+  public IEnumerable<EventDescription> TakeTurns()
   {
     // this isn't event-sourced, maybe it doesn't need to be?
     game.ContinuousEffects.Add(new SkipFirstDraw());
@@ -178,133 +170,112 @@ public class RuleSystem
     var arbitraryConditionToEndOn = () => game.Turns[game.ActivePlayerId] < 4;
     while (game.TurnOrder.Count > 1 && arbitraryConditionToEndOn())
     {
-      foreach (var turnPart in turnSystem.TakeTurn())
+      foreach (var @event in turnSystem.TakeTurn())
       {
-        // a lot of this should probably be elevated to the foreach
-        // loop in order to be applied as broadly as possible
-        TryGetReplacementEffect(turnPart, out var replacement);
+        // ReplacementEffects that skip (or add?) Turn Phases and/or Steps
+        var result = FindReplacementEffect(@event) ?? @event;
 
-        var result = replacement ?? turnPart;
-        if (result.Type.StartsWith(Turn.Steps.BaseKey))
-          game.UpdateTurnStep(result.Type);
-        
-        yield return result;
-
-        if (TurnBasedActions.TryGetValue(result.Type, out var actions))
-        {
+        // Look for Turn-Based Actions
+        if (TurnBasedActions.TryGetValue(@event.Type, out var actions))
           foreach (var action in actions)
-            yield return action(game);
-        }
+            foreach (var step in action(game))
+              yield return step;
 
-        var priorityExchange = game.TurnStep switch
-        {
-          string turnStep when Turn.PartsWithPriority.Contains(turnStep) => Enumerable.Empty<GameEvent>(),
-          _ => timingSystem.ExchangePriority()
-        };
-
-        // handle priority
-        foreach (var action in priorityExchange)
-          yield return action;
+        // check for beginning of step/phase triggers
+        yield return result;
+        // check for end of step/phase triggers
       }
     }
   }
 
-  public bool TryGetReplacementEffect(GameEvent @event, out GameEvent? replacement)
+  public EventDescription? FindReplacementEffect(EventDescription incomingEvent)
   {
-    // todo
-    // currently only grabbing the first. eventually have to open
-    // the "choose/order multiples" can of worms
-    replacement = null;
-    var applicableEffect = game.ContinuousEffects
+    var foundEffect = game.ContinuousEffects
       .OfType<ReplacementEffect>()
-      .FirstOrDefault(x => x.AppliesTo(game, @event));
+      .FirstOrDefault(x => x.AppliesTo(game, incomingEvent));
 
-    if (applicableEffect is null)
-      return false;
-    
-    if (applicableEffect.IsExpired(game, @event))
-      game.ContinuousEffects.Remove(applicableEffect);
+    if (foundEffect != null && foundEffect.IsExpired(game, incomingEvent))
+      game.ContinuousEffects.Remove(foundEffect);
 
-    replacement = applicableEffect.CreateReplacement(game, @event);
-    return true;
+    return foundEffect?.CreateReplacement(game, incomingEvent);
   }
 
-  public GameEvent PriorityGoesTo(string playerId)
+  public EventDescription PriorityGoesTo(string playerId)
   {
     game.GivePriorityTo(playerId);
-    return new GameEvent($"{game.ActivePlayer.Name} gains priority");
+    return new EventDescription($"{game.ActivePlayer.Name} gains priority");
   }
 
-  public IEnumerable<GameEvent> Phasing()
+  public IEnumerable<EventDescription> Phasing()
   {
-    yield return new GameEvent("502.1. Phasing")
+    yield return new EventDescription("502.1. Phasing")
     {
       Description = "All phased-in permanents with phasing that the active player controls phase out, and all phased-out permanents that the active player controlled when they phased out phase in. This all happens simultaneously."
     };
   }
 
-  public IEnumerable<GameEvent> DayNight()
+  public IEnumerable<EventDescription> DayNight()
   {
-    yield return new GameEvent("502.2. Day/Night")
+    yield return new EventDescription("502.2. Day/Night")
     {
       Description = "If it’s day and the previous turn’s active player didn’t cast any spells during that turn, it becomes night. If it’s night and the previous turn’s active player cast two or more spells during that turn, it becomes day. If it’s neither day nor night, this check doesn’t happen and it remains neither.",
     };
   }
 
-  public IEnumerable<GameEvent> UntapPermanents()
+  public IEnumerable<EventDescription> UntapPermanents()
   {
-    yield return new GameEvent("502.3. Untap Permanents")
+    yield return new EventDescription("502.3. Untap Permanents")
     {
       Description = "The active player determines which permanents they control will untap. Then they untap them all simultaneously. This turn-based action doesn’t use the stack. All of a player’s permanents untap unless an effect prevents one or more of a player’s permanents from untapping.",
     };
   }
 
-  public IEnumerable<GameEvent> Sagas()
+  public IEnumerable<EventDescription> Sagas()
   {
-    yield return new GameEvent("505.4. Sagas")
+    yield return new EventDescription("505.4. Sagas")
     {
       Description = "If the active player controls one or more Saga enchantments and it’s the active player’s precombat main phase, the active player puts a lore counter on each Saga they control.",
     };
   }
 
-  public IEnumerable<GameEvent> DeclareAttackers()
+  public IEnumerable<EventDescription> DeclareAttackers()
   {
-    yield return new GameEvent("508.1. First, the active player declares attackers.")
+    yield return new EventDescription("508.1. First, the active player declares attackers.")
     {
       Description = "There are A LOT of parts to this so look at the Comprehensive Rules. This might inform/dictate further larger design.",
     };
   }
 
-  public IEnumerable<GameEvent> DeclareBlockers()
+  public IEnumerable<EventDescription> DeclareBlockers()
   {
-    yield return new GameEvent("509.1. First, the defending player declares blockers.")
+    yield return new EventDescription("509.1. First, the defending player declares blockers.")
     {
       Description = "There are A LOT of parts to this so look at the Comprehensive Rules. This might inform/dictate further larger design.",
     };
   }
 
-  public IEnumerable<GameEvent> CombatDamage()
+  public IEnumerable<EventDescription> CombatDamage()
   {
-    yield return new GameEvent()
+    yield return new EventDescription()
     {
       Name = "510.1. First, the active player announces how each attacking creature assigns its combat damage",
       Description = "Then the defending player announces how each blocking creature assigns its combat damage."
     };
   }
 
-  public IEnumerable<GameEvent> DiscardToHandSize()
+  public IEnumerable<EventDescription> DiscardToHandSize()
   {
-    yield return new GameEvent("514.1. active player’s hand contains more cards than their maximum hand size (normally seven), they discard enough cards to reduce their hand size to that number.");
+    yield return new EventDescription("514.1. active player’s hand contains more cards than their maximum hand size (normally seven), they discard enough cards to reduce their hand size to that number.");
   }
 
-  public IEnumerable<GameEvent> RemoveDamage()
+  public IEnumerable<EventDescription> RemoveDamage()
   {
-    yield return new GameEvent("514.2. Damage marked on permanents is removed, all \"until end of turn\" and \"this turn\" effects end.");
+    yield return new EventDescription("514.2. Damage marked on permanents is removed, all \"until end of turn\" and \"this turn\" effects end.");
   }
 
-  public IEnumerable<GameEvent> EndCleanup()
+  public IEnumerable<EventDescription> EndCleanup()
   {
-    yield return new GameEvent("514.3. Normally, no player receives priority during the cleanup step, so no spells can be cast and no abilities can be activated. However, this rule is subject to the following exception: ")
+    yield return new EventDescription("514.3. Normally, no player receives priority during the cleanup step, so no spells can be cast and no abilities can be activated. However, this rule is subject to the following exception: ")
     {
       Description = $"514.3a At this point, the game checks to see if any state-based actions would be performed and/or any triggered abilities are waiting to be put onto the stack (including those that trigger “at the beginning of the next cleanup step”). If so, those state-based actions are performed, then those triggered abilities are put on the stack, then the active player gets priority. Players may cast spells and activate abilities. Once the stack is empty and all players pass in succession, another cleanup step begins."
     };

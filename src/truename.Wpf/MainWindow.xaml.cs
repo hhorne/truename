@@ -14,8 +14,8 @@ namespace truename.Wpf
     private Player[] players;
     private Game match;
     private RuleSystem ruleSystem;
-    private IEnumerable<GameEvent> game;
-    private ObservableCollection<GameEvent> gameEvents;
+    private IEnumerable<EventDescription> game;
+    private ObservableCollection<EventDescription> gameEvents;
 
     public MainWindow()
     {
@@ -31,7 +31,7 @@ namespace truename.Wpf
       ruleSystem = new RuleSystem(match);
       game = ruleSystem.PlayGame();
 
-      gameEvents = new ObservableCollection<GameEvent>(match.EventLog);
+      gameEvents = new ObservableCollection<EventDescription>(match.EventLog);
       GameLog.DataContext = gameEvents;
 
       foreach (var @event in game)

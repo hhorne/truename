@@ -21,7 +21,7 @@ public class GameSystemTests
     game.SetTurnOrder(players.Select(p => p.Id));
 
     var drawEventId = "Turn/Step/Draw";
-    var @event = new GameEvent
+    var @event = new EventDescription
     {
       PlayerId = game.ActivePlayerId,
       Name = "Draw Step",

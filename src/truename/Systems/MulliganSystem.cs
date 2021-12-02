@@ -25,7 +25,7 @@ public class MulliganSystem
       );
   }
 
-  public IEnumerable<GameEvent> DeclareMulligans()
+  public IEnumerable<EventDescription> DeclareMulligans()
   {
     foreach (var k in KeepOrMull())
     {
@@ -36,7 +36,7 @@ public class MulliganSystem
     }
   }
 
-  public IEnumerable<GameEvent> KeepOrMull()
+  public IEnumerable<EventDescription> KeepOrMull()
   {
     var choices = StillDeciding
       .Select(pId => new Decision
@@ -55,7 +55,7 @@ public class MulliganSystem
       yield return choice;
   }
 
-  public IEnumerable<GameEvent> PutCardsBack()
+  public IEnumerable<EventDescription> PutCardsBack()
   {
     var players = Decisions
       .Where(d =>
@@ -99,7 +99,7 @@ public class MulliganSystem
           putBack.Select(c => $" - {c}")
         );
 
-        yield return new GameEvent
+        yield return new EventDescription
         {
           PlayerId = playerId,
           Name = $"{playerName} put back {numPutBack}",

@@ -1,7 +1,7 @@
 ﻿namespace truename;
 
 // Something happened and we have to get a players input
-public class Decision : GameEvent
+public class Decision : EventDescription
 {
   public GameAction[] Choices { get; set; } = Array.Empty<GameAction>();
 
