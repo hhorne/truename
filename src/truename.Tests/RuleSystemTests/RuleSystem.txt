@@ -1,65 +1,13 @@
 using truename.Effects;
-using truename.Effects.Predefined;
-
 namespace truename.Systems;
 
-delegate EventDescription TurnBasedAction(Game game);
-delegate IEnumerable<EventDescription> GameEvent(Game game);
-
-public class RuleSystem
+public class RuleSystemold
 {
   private readonly Game game;
-  private readonly HandSystem handSystem;
-  private readonly LibrarySystem librarySystem;
-  private readonly MulliganSystem mulliganSystem;
-  private readonly TimingSystem timingSystem;
-  private readonly TurnSystem turnSystem;
-  private readonly Dictionary<string, IEnumerable<GameEvent>> TurnBasedActions = new();
 
   public RuleSystem(Game game)
   {
     this.game = game;
-    handSystem = new HandSystem(game);
-    librarySystem = new LibrarySystem(game);
-    mulliganSystem = new MulliganSystem(game);
-    timingSystem = new TimingSystem(game);
-    turnSystem = new TurnSystem(game);
-
-    TurnBasedActions = new()
-    {
-      [Turn.Steps.Untap] = new GameEvent[]
-      {
-        g => Phasing(),
-        g => DayNight(),
-        g => UntapPermanents(),
-      },
-      [Turn.Steps.Draw] = new GameEvent[]
-      {
-        g => new [] { DrawFromLibrary(g.ActivePlayerId) },
-      },
-      [Turn.Phases.PreCombatMain] = new GameEvent[]
-      {
-        g => Sagas(),
-      },
-      [Turn.Steps.DeclareAttackers] = new GameEvent[]
-      {
-        g => DeclareAttackers(),
-      },
-      [Turn.Steps.DeclareBlockers] = new GameEvent[]
-      {
-        g => DeclareBlockers(),
-      },
-      [Turn.Steps.CombatDamage] = new GameEvent[]
-      {
-        g => CombatDamage(),
-      },
-      [Turn.Steps.Cleanup] = new GameEvent[]
-      {
-        g => DiscardToHandSize(),
-        g => RemoveDamage(),
-        g => EndCleanup(),
-      },
-    };
   }
 
   public IEnumerable<EventDescription> PlayGame()

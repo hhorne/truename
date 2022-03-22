@@ -5,21 +5,15 @@
 
 https://mtg.fandom.com/wiki/Turn_structure
 
+## Magic Rules Tips
+
+> [...]  If two different effects are trying to give different players an additional turn, which wins? In Magic, the most recently generated extra turn will be taken first. While taking turns does not use the stack, it may be useful to think of turns as if they did. Like spells and abilities on the stack, the top most one resolves and happens first. Normally in a two player game, the ‘turn stack’ simply alternates between the two players. When someone generates an extra turn, this turn goes on top of the stack, it will disrupt to normal pattern and this turn will be taken next. So if two different players generate extra turns, the last effect to resolve and create an extra turn will ‘win’ and be taken first. Then the additional turn that was generated first will be taken. Once that turn is over the game will return to its normal pattern.
+
+[Original Blog Post](https://blogs.magicjudges.org/rulestips/2011/08/how-to-deal-with-extra-turns/)
+
 ## Basic Workflow
 
 Maybe don't explicitly check for these triggers and prefer the triggers call Game Object methods to accomlish what's needed.
-
-Check _Triggers_ for _Skip Turn_
-Do _Turn_ unless _Skip Turn_ found
-Check _Triggers_ for _Skip Phase_
-Do _Phase_ unless _Skip Phase_ found
-Check _Triggers_ for _Skip Step_
-Do [Step] unless [Skip Step] found
-Check [Triggers] for [Extra Step]
-Repeat for each [Step] in [Phase]
-Check [Triggers] for [Extra Phase]
-Repeat for each [Phase] in [Turn]
-EndOfTurn check [Triggers] for [Extra Turn]
 
 #### Note:
 

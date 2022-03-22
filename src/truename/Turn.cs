@@ -1,44 +1,75 @@
-﻿namespace truename;
+﻿using System.Collections.ObjectModel;
 
-public class Turn
+namespace truename;
+
+public static class Turn
 {
-  public class Phases
+  public static class Steps
   {
-    public static readonly string BaseKey = "Turn/Phase/";
-    // beginning, precombat main, combat, postcombat main, and ending
-    public static readonly string Beginning = $"{BaseKey}{nameof(Beginning)}";
-    public static readonly string PreCombatMain = $"{BaseKey}{nameof(PreCombatMain)}";
-    public static readonly string Combat = $"{BaseKey}{nameof(Combat)}";
-    public static readonly string PostCombatMain = $"{BaseKey}{nameof(PostCombatMain)}";
-    public static readonly string Ending = $"{BaseKey}{nameof(Ending)}";
+    public static readonly string Untap = $"Turn/Beginning/{nameof(Untap)}";
+    public static readonly string Upkeep = $"Turn/Beginning/{nameof(Upkeep)}";
+    public static readonly string Draw = $"Turn/Beginning/{nameof(Draw)}";
+    public static readonly string Main = "Turn/Main";
+    public static readonly string BeginCombat = $"Turn/Combat/{nameof(BeginCombat)}";
+    public static readonly string DeclareAttackers = $"Turn/Combat/{nameof(DeclareAttackers)}";
+    public static readonly string DeclareBlockers = $"Turn/Combat/{nameof(DeclareBlockers)}";
+    public static readonly string CombatDamage = $"Turn/Combat/{nameof(CombatDamage)}";
+    public static readonly string EndCombat = $"Turn/Combat/{nameof(EndCombat)}";
+    public static readonly string EndStep = $"Turn/Ending/{nameof(EndStep)}";
+    public static readonly string Cleanup = $"Turn/Ending/{nameof(Cleanup)}";
   }
 
-  public class Steps
+  public static class Phases
   {
-    public static readonly string BaseKey = "Turn/Step/";
-    public static readonly string Untap = $"{BaseKey}{nameof(Untap)}";
-    public static readonly string Upkeep = $"{BaseKey}{nameof(Upkeep)}";
-    public static readonly string Draw = $"{BaseKey}{nameof(Draw)}";
-    public static readonly string BeginCombat = $"{BaseKey}{nameof(BeginCombat)}";
-    public static readonly string DeclareAttackers = $"{BaseKey}{nameof(DeclareAttackers)}";
-    public static readonly string DeclareBlockers = $"{BaseKey}{nameof(DeclareBlockers)}";
-    public static readonly string CombatDamage = $"{BaseKey}{nameof(CombatDamage)}";
-    public static readonly string EndCombat = $"{BaseKey}{nameof(EndCombat)}";
-    public static readonly string EndStep = $"{BaseKey}{nameof(EndStep)}";
-    public static readonly string Cleanup = $"{BaseKey}{nameof(Cleanup)}";
+    public static readonly string[] Beginning = new string[]
+    {
+      Steps.Untap,
+      Steps.Upkeep,
+      Steps.Draw,
+    };
+
+    public static readonly string[] Combat = new string[]
+    {
+      Steps.BeginCombat,
+      Steps.DeclareAttackers,
+      Steps.DeclareBlockers,
+      Steps.CombatDamage,
+      Steps.EndCombat,
+    };
+
+    public static readonly string[] Ending = new string[]
+    {
+      Steps.Cleanup,
+      Steps.EndStep,
+    };
   }
 
   public static string[] PartsWithPriority =
   {
     Steps.Upkeep,
     Steps.Draw,
-    Phases.PreCombatMain,
+    Steps.Main,
     Steps.BeginCombat,
     Steps.DeclareAttackers,
     Steps.DeclareBlockers,
     Steps.CombatDamage,
     Steps.EndCombat,
-    Phases.PostCombatMain,
     Steps.EndStep
   };
+
+  public static ReadOnlyCollection<string> Structure { get; } = new(new[]
+  {
+    Steps.Untap,
+    Steps.Upkeep,
+    Steps.Draw,
+    Steps.Main,
+    Steps.BeginCombat,
+    Steps.DeclareAttackers,
+    Steps.DeclareBlockers,
+    Steps.CombatDamage,
+    Steps.EndCombat,
+    Steps.Main,
+    Steps.Cleanup,
+    Steps.EndStep
+  });
 }

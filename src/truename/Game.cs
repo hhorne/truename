@@ -9,15 +9,27 @@ using ZoneKeys = truename.Zones;
 public partial class Game : AggregateRoot
 {
   public int Number { get; set; }
-  public List<string> TurnOrder { get; set; } = new();
   public Dictionary<string, Player> Players { get; set; } = new();
+  public List<string> TurnOrder { get; set; } = new();
   public string ActivePlayerId { get; set; } = string.Empty;
   public Player ActivePlayer => Players[ActivePlayerId];
   public string PriorityHolderId { get; set; } = string.Empty;
   public Dictionary<(ZoneKeys, string), List<Card>> Zones { get; set; } = new();
-  public List<EventDescription> EventLog { get; set; } = new();
+  
+  // Tracks all events through the course of the game, useful for Storm Count
+  // and Effects like "Skip draw except for first draw of turn"
+  //
+  // Key is (playerId, turnNumber, turnStep)
+  public Dictionary<(string, int, string), List<IGameEvent>> Events { get; set; } = new();
+
+  // Tracks the current Turn Number of each player
   public Dictionary<string, int> Turns { get; set; } = new();
-  public string TurnStep { get; set; } = string.Empty;
+
+  // Tracks modifications to normal flow of turn. Extra Turns, Phases and Steps
+  public List<(string, List<string>)> TurnStack = new();
+
+  // Current Turn Step
+  public string TurnStep { get; set; } = "Game-Created";
   public List<ContinuousEffect> ContinuousEffects { get; set; } = new();
 
   public Game() { }
@@ -42,36 +54,14 @@ public partial class Game : AggregateRoot
   public void Apply(GameCreated @event)
   {
     Id = @event.Id;
-    Players = @event.Players.ToDictionary(o => o.Id);
-
-    Zones = new()
-    {
-      [(ZoneKeys.Battlefield, string.Empty)] = new(),
-      [(ZoneKeys.Stack, string.Empty)] = new(),
-      [(ZoneKeys.Exile, string.Empty)] = new()
-    };
-
-    Players.ForEach(p =>
-    {
-      var player = Players[p.Key];
-      Zones[(ZoneKeys.Graveyard, p.Key)] = new();
-      Zones[(ZoneKeys.Hand, p.Key)] = new();
-      Zones[(ZoneKeys.Library, p.Key)] = new(player.DeckList);
-    });
-  }
-
-  public void SetTurnOrder(IEnumerable<string> turnOrder)
-  {
-    var @event = new SetTurnOrder(turnOrder);
-    Apply(@event);
-    AddUncommittedEvent(@event);
+    @event.Resolve(this);
   }
 
   public void Apply(SetTurnOrder @event)
   {
     TurnOrder = @event.TurnOrder.ToList();
-    Turns = TurnOrder.ToDictionary(p => p, p => 1);
     ActivePlayerId = TurnOrder.First();
+    Log(@event);
   }
 
   public void UpdateZone((ZoneKeys, string) zoneId, IEnumerable<Card> cards)
@@ -120,19 +110,49 @@ public partial class Game : AggregateRoot
 
   public void Apply(UpdateTurnStep @event)
   {
-    TurnStep = @event.TurnStep;
+    @event.Resolve(this);
   }
 
-  public EventDescription Log(EventDescription gameEvent)
+  public IGameEvent Log(IGameEvent gameEvent)
   {
-    var @event = new LogGameEvent(gameEvent);
+    var key = (ActivePlayerId, Turns[ActivePlayerId], TurnStep);
+    var @event = new LogEvent(key, gameEvent);
     Apply(@event);
     AddUncommittedEvent(@event);
     return gameEvent;
   }
 
-  public void Apply(LogGameEvent @event)
+  public void Apply(LogEvent @event)
   {
-    EventLog.Add(@event.GameEvent);
+    if (!Events.ContainsKey(@event.Key))
+    {
+      Events[@event.Key] = new();
+    }
+
+    Events[@event.Key].Add(@event.GameEvent);
+  }
+
+  public void CreateContinuousEffect(ContinuousEffect effect)
+  {
+    var @event = new CreateContinuousEffect(effect);
+    Apply(@event);
+    AddUncommittedEvent(@event);
+  }
+
+  public void Apply(CreateContinuousEffect @event)
+  {
+    ContinuousEffects.Add(@event.Effect);
+  }
+
+  public void Draw(string playerId)
+  {
+    var @event = new Draw(playerId);
+    Apply(@event);
+    AddUncommittedEvent(@event);
+  }
+
+  public void Apply(Draw @event)
+  {
+    @event.Resolve(this);
   }
 }

@@ -1,0 +1,128 @@
+﻿using System;
+using Xunit;
+using truename.Events;
+using System.Collections.Generic;
+using Xunit.Abstractions;
+using truename.Effects;
+using System.Linq;
+
+namespace truename.Tests;
+
+public class TurnTests
+{
+  Game game;
+  Player[] players;
+  readonly ITestOutputHelper output;
+
+  public TurnTests(ITestOutputHelper output)
+  {
+    players = new[]
+    {
+      new Player("tron_travolta", TestData.GrixisDeck),
+      new Player("typedef", TestData.ReanimatorDeck)
+    };
+
+    game = new Game(players);
+    game.SetTurnOrder(players.Select(p => p.Id));
+
+    this.output = output;
+  }
+
+  [Fact]
+  void ReplacementEffect_found_for_Untap_Step()
+  {
+    game.CreateContinuousEffect(
+      new ReplacementEffect<UpdateTurnStep>(
+        (g, e) => e.TurnStep == Turn.Steps.Untap,
+        (g, e) => new Skip(e)
+      ));
+
+    var @event = new UpdateTurnStep(Turn.Steps.Untap);
+    FindReplacement(@event);
+  }
+
+  [Fact]
+  void turn_structure_test()
+  {
+    game.CreateContinuousEffect(
+      new ReplacementEffect<UpdateTurnStep>(
+        (g, e) => Turn.Phases
+          .Beginning
+          .Contains(e.TurnStep),
+        (g, e) => e.TurnStep == Turn.Steps.Draw,
+        (g, e) => new Skip(e)
+      ));
+
+    var turn = new List<string>(Turn.Structure);
+
+    var events = turn
+      .Select(step => new UpdateTurnStep(step))
+      .Select(@event => FindReplacement(@event) ?? @event);
+
+    Assert.Equal(3, events.OfType<Skip>().Count());
+  }
+
+  [Fact]
+  void can_handle_extra_phases()
+  {
+    var turn = TakeTurn();
+    var spellResolved = false;
+    int mainsTaken = 0;
+    foreach (var step in turn)
+    {
+      if (step is UpdateTurnStep @event && @event.TurnStep == Turn.Steps.Main)
+      {
+        if (mainsTaken > 0 && !spellResolved)
+        {
+          var currentTurn = turnStack[0];
+          var (playerId, steps) = currentTurn;
+          steps.InsertRange(
+            steps.LastIndexOf(Turn.Steps.Main) + 1,
+            Turn.Phases.Combat.Append(Turn.Steps.Main)
+          );
+          spellResolved = true;
+        }
+        else
+        {
+          mainsTaken++;
+        }
+      }
+    }
+
+    Assert.Equal(2, mainsTaken);
+  }
+
+  IEvent? FindReplacement<T>(T @event) where T : IEvent => game
+    .ContinuousEffects
+    .OfType<ReplacementEffect<T>>()
+    .FirstOrDefault(e => e.AppliesTo(game, @event))
+    ?.CreateReplacement(game, @event);
+
+  List<(string, List<string>)> turnStack = new();
+
+  IEnumerable<IEvent> TakeTurn()
+  {
+    if (turnStack.Count == 0)
+    {
+      // turn queue empty, default behavior: switch active players
+      var lastPlayerId = game.ActivePlayerId;
+      var turnOrder = game.TurnOrder;
+      var nextPlayerId = turnOrder.After(lastPlayerId);
+      turnStack.Add((nextPlayerId, Turn.Structure.ToList()));
+    }
+
+    var turn = turnStack.First();
+    var (playerId, steps) = turn;
+    game.UpdateActivePlayer(playerId);
+
+    for (int i = 0; i < steps.Count; i++)
+    {
+      var step = steps[i];
+      var @event = new UpdateTurnStep(step);
+      var result = FindReplacement(@event) ?? @event;
+      yield return result;
+    }
+
+    turnStack.Remove(turn);
+  }
+}

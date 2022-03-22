@@ -1,7 +1,6 @@
 ﻿using Spectre.Console;
 using System.Linq;
 using truename;
-using truename.Systems;
 
 var players = new[]
 {
@@ -10,20 +9,20 @@ var players = new[]
 };
 
 var match = new Game(players);
-var ruleSystem = new RuleSystem(match);
+//var ruleSystem = new RuleSystem(match);
 
-foreach (var @event in ruleSystem.PlayGame())
-{
-  if (@event is Decision decision)
-  {
-    AnsiConsole
-      .Prompt(decision.ToPrompt())
-      .Action();
-  }
-  else
-  {
-    AnsiConsole.MarkupLine(@event.Name);
-    if (!string.IsNullOrEmpty(@event.Description))
-      AnsiConsole.MarkupLine(@event.Description);
-  }
-}
+//foreach (var @event in ruleSystem.PlayGame())
+//{
+//  if (@event is Decision decision)
+//  {
+//    AnsiConsole
+//      .Prompt(decision.ToPrompt())
+//      .Action();
+//  }
+//  else
+//  {
+//    AnsiConsole.MarkupLine(@event.Name);
+//    if (!string.IsNullOrEmpty(@event.Description))
+//      AnsiConsole.MarkupLine(@event.Description);
+//  }
+//}

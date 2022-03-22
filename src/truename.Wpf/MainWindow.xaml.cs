@@ -2,7 +2,6 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
-using truename.Systems;
 
 namespace truename.Wpf
 {
@@ -13,9 +12,8 @@ namespace truename.Wpf
   {
     private Player[] players;
     private Game match;
-    private RuleSystem ruleSystem;
-    private IEnumerable<EventDescription> game;
-    private ObservableCollection<EventDescription> gameEvents;
+    private IEnumerable<IEvent> game;
+    private ObservableCollection<IEvent> gameEvents;
 
     public MainWindow()
     {
@@ -28,22 +26,22 @@ namespace truename.Wpf
       };
 
       match = new Game(players);
-      ruleSystem = new RuleSystem(match);
-      game = ruleSystem.PlayGame();
+      //ruleSystem = new RuleSystem(match);
+      //game = ruleSystem.PlayGame();
 
-      gameEvents = new ObservableCollection<EventDescription>(match.EventLog);
-      GameLog.DataContext = gameEvents;
+      //gameEvents = new ObservableCollection<IEvent>(match.EventLog);
+      //GameLog.DataContext = gameEvents;
 
-      foreach (var @event in game)
-      {
-        if (@event is Decision)
-        {
-          var choice = (Decision)@event;
-          choice.Choices.First().Action();
-        }
+      //foreach (var @event in game)
+      //{
+      //  if (@event is Decision)
+      //  {
+      //    var choice = (Decision)@event;
+      //    choice.Choices.First().Action();
+      //  }
 
-        gameEvents.Add(@event);
-      }
+      //  gameEvents.Add(@event);
+      //}
     }
   }
 }
