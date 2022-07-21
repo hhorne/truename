@@ -1,16 +1,20 @@
 ﻿namespace truename.Events;
 
-public record Draw(string PlayerId) : IGameEvent
+public class Draw : IGameEvent
 {
-  public string Name => "Draw";
+    public string PlayerId { get; set; }
 
-  public void Resolve(Game g)
-  {
-    var playerId = PlayerId;
-    var library = g.Zones[(Zones.Library, playerId)];
-    var hand = g.Zones[(Zones.Hand, playerId)];
-    var cards = library.TakeLast(1);
-    g.UpdateZone((Zones.Library, playerId), library.Except(cards));
-    g.UpdateZone((Zones.Hand, playerId), hand.Concat(cards));
-  }
+    public Draw(string playerId)
+    {
+        PlayerId = playerId;
+    }
+
+    public GameEffect Resolve => (m, _, _, _) =>
+    {
+        var hand = m.Zones[(ZoneTypes.Hand, PlayerId)];
+        var library = m.Zones[(ZoneTypes.Library, PlayerId)];
+        var card = library.Last();
+        library.Remove(card);
+        hand.Add(card.ChangingZone());
+    };
 }

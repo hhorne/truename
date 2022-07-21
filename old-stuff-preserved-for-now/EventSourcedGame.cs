@@ -4,9 +4,7 @@ using truename.Events;
 
 namespace truename;
 
-using ZoneKeys = truename.Zones;
-
-public partial class Game : AggregateRoot
+public partial class EventSourcedGame : AggregateRoot
 {
   public int Number { get; set; }
   public Dictionary<string, Player> Players { get; set; } = new();
@@ -14,13 +12,13 @@ public partial class Game : AggregateRoot
   public string ActivePlayerId { get; set; } = string.Empty;
   public Player ActivePlayer => Players[ActivePlayerId];
   public string PriorityHolderId { get; set; } = string.Empty;
-  public Dictionary<(ZoneKeys, string), List<Card>> Zones { get; set; } = new();
+  public Dictionary<(ZoneTypes, string), List<Card>> Zones { get; set; } = new();
   
   // Tracks all events through the course of the game, useful for Storm Count
   // and Effects like "Skip draw except for first draw of turn"
   //
   // Key is (playerId, turnNumber, turnStep)
-  public Dictionary<(string, int, string), List<IGameEvent>> Events { get; set; } = new();
+  public Dictionary<(string, int, string), List<IGameEventOld>> Events { get; set; } = new();
 
   // Tracks the current Turn Number of each player
   public Dictionary<string, int> Turns { get; set; } = new();
@@ -32,19 +30,19 @@ public partial class Game : AggregateRoot
   public string TurnStep { get; set; } = "Game-Created";
   public List<ContinuousEffect> ContinuousEffects { get; set; } = new();
 
-  public Game() { }
+  public EventSourcedGame() { }
 
-  public Game(Player[] players)
+  public EventSourcedGame(Player[] players)
       : this(Guid.NewGuid(), 1, players)
   {
   }
 
-  public Game(int number, Player[] players)
+  public EventSourcedGame(int number, Player[] players)
       : this(Guid.NewGuid(), number, players)
   {
   }
 
-  public Game(Guid id, int number, Player[] players)
+  public EventSourcedGame(Guid id, int number, Player[] players)
   {
     var @event = new GameCreated(id, number, players);
     Apply(@event);
@@ -61,10 +59,10 @@ public partial class Game : AggregateRoot
   {
     TurnOrder = @event.TurnOrder.ToList();
     ActivePlayerId = TurnOrder.First();
-    Log(@event);
+    //Log(@event);
   }
 
-  public void UpdateZone((ZoneKeys, string) zoneId, IEnumerable<Card> cards)
+  public void UpdateZone((ZoneTypes, string) zoneId, IEnumerable<Card> cards)
   {
     var @event = new UpdateZone(zoneId, cards);
     Apply(@event);
@@ -113,7 +111,7 @@ public partial class Game : AggregateRoot
     @event.Resolve(this);
   }
 
-  public IGameEvent Log(IGameEvent gameEvent)
+  public truename.IGameEventOld Log(truename.IGameEventOld gameEvent)
   {
     var key = (ActivePlayerId, Turns[ActivePlayerId], TurnStep);
     var @event = new LogEvent(key, gameEvent);

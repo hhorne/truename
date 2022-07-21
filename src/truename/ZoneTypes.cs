@@ -1,6 +1,6 @@
 namespace truename;
 
-public enum Zones
+public enum ZoneTypes
 {
   None = 0,
   Battlefield,

@@ -2,13 +2,14 @@
 using System.Linq;
 using truename;
 
-var players = new[]
-{
-  new Player("tron_travolta", TestData.GrixisDeck),
-  new Player("typedef", TestData.ReanimatorDeck),
-};
+Console.WriteLine("Hi");
+//var players = new[]
+//{
+//  new Player("tron_travolta", TestData.GrixisDeck),
+//  new Player("typedef", TestData.ReanimatorDeck),
+//};
 
-var match = new Game(players);
+//var match = new EventSourcedGame(players);
 //var ruleSystem = new RuleSystem(match);
 
 //foreach (var @event in ruleSystem.PlayGame())

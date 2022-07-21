@@ -1,32 +1,38 @@
+using truename.Events;
+
 namespace truename.Effects;
 
-public delegate IGameEvent EventConverter<T>(Game game, T @event);
-public delegate bool GameCondition<T>(Game game, T @event);
+public delegate IGameEvent EventConverter<T>(Match match, T @event);
+public delegate bool EventCondition<T>(Match match, T @event);
+
+public class ContinuousEffect { }
 
 public class ReplacementEffect<T> : ContinuousEffect where T : IGameEvent
 {
-  public GameCondition<T> AppliesTo { get; private set; }
-  public GameCondition<T> IsExpired { get; private set; }
-  public EventConverter<T> CreateReplacement { get; private set; }
+    public EventCondition<T> AppliesTo { get; set; } = (m, e) => false;
+    public EventCondition<T> IsExpired { get; set; } = (m, e) => false;
+    public EventConverter<T> CreateReplacement { get; set; } = (m, e) => throw new NotImplementedException();
 
-  public ReplacementEffect(
-    GameCondition<T> appliesTo,
-    GameCondition<T> isExpired,
-    EventConverter<T> eventCreator
-  )
-  {
-    AppliesTo = appliesTo;
-    CreateReplacement = eventCreator;
-    IsExpired = isExpired;
-  }
+    public ReplacementEffect() { }
 
-  // ForOne-Shot Effects, expire as soon as they're applied.
-  public ReplacementEffect(
-    GameCondition<T> applies,
-    EventConverter<T> eventCreator
-  ) : this(
-    applies,
-    applies,
-    eventCreator
-  ) { }
+    public ReplacementEffect(
+      EventCondition<T> appliesTo,
+      EventCondition<T> isExpired,
+      EventConverter<T> eventCreator
+    )
+    {
+        AppliesTo = appliesTo;
+        CreateReplacement = eventCreator;
+        IsExpired = isExpired;
+    }
+
+    // ForOne-Shot Effects, expire as soon as they're applied.
+    public ReplacementEffect(
+        EventCondition<T> applies,
+        EventConverter<T> eventCreator
+    ) : this(
+        applies,
+        applies,
+        eventCreator
+    ) { }
 }

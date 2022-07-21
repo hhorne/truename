@@ -1,12 +1,16 @@
 ﻿namespace truename.Events;
 
-public record UpdateTurnStep(string TurnStep) : IGameEvent
+public class UpdateTurnStep : IGameEvent
 {
-  public string Name => "Update Turn Step";
-  public override string ToString() => $"{Name}: {TurnStep}";
+    public string NextStep { get; set; }
 
-  public void Resolve(Game g)
-  {
-    g.TurnStep = TurnStep;
-  }
+    public UpdateTurnStep(string nextStep)
+    {
+        NextStep = nextStep;
+    }
+
+    public GameEffect Resolve => (m, _, _, _) =>
+    {
+        m.CurrentStep = NextStep;
+    };
 }

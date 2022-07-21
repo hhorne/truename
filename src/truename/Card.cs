@@ -1,18 +1,53 @@
+using truename.Characteristics;
+
 namespace truename;
 
 public class Card
 {
-  // Id of the card object (i.e. Thoughtseize 1 of 4)
-  public Guid Id { get; set; } = Guid.NewGuid();
-  // Id of the card data (i.e. Thoughtseize)
-  public string CardId { get; set; }
-  public string Name { get; set; }
+    // Id that never changes, probably not used for anything other
+    // than tracking/storage purposes for us. maybe use scryfallId?
+    public Guid Id { get; set; }
 
-  public Card(string name)
-  {
-    CardId = name.ToLower().Replace(' ', '-');
-    Name = name;
-  }
+    // Id that defines the card in WotC Oracle db
+    public Guid OracleId { get; set; }
 
-  public override string ToString() => $"{Name} ({Id.ToString().Substring(0, 8)})";
+    // Changes when object changes zones. Used for Aura's, Equipment, etc.
+    public Guid ZonedId { get; set; }
+
+    public ICharacteristic[] Characteristics { get; set; } = Array.Empty<ICharacteristic>();
+
+    public Card(Guid oracleId, params ICharacteristic[] characteristics)
+        : this(Guid.NewGuid(), Guid.NewGuid(), oracleId, characteristics)
+    {
+    }
+
+    public Card(Guid id, Guid zonedId, Guid oracleId, params ICharacteristic[] characteristics)
+    {
+        Id = id;
+        ZonedId = zonedId;
+        OracleId = oracleId;
+        Characteristics = characteristics;
+    }
+
+    public T? GetCharacteristic<T>() where T : ICharacteristic =>
+        Characteristics
+            .OfType<T>()
+            .SingleOrDefault();
+
+    public override string ToString() =>
+        $"{GetCharacteristic<CardName>()?.Value} ({OracleId.ToString().Substring(0, 8)})";
+
+    public Card ChangingZone() => new Card(
+        Id,
+        Guid.NewGuid(),
+        OracleId,
+        Characteristics
+    );
+
+    public static Card ChangedZone(Card card) => new Card(
+        card.Id,
+        Guid.NewGuid(),
+        card.OracleId,
+        card.Characteristics
+    );
 }
